@@ -1,0 +1,28 @@
+mat-card.orders {
+    width: 350px;
+}
+
+.card-container {
+    display: inline-block;
+    padding: 10px;
+}
+
+.header {
+    padding: 10px;
+    text-align: center;
+    display: flex;
+}
+
+.inner {
+    width: 50%;
+    margin: auto;
+}
+
+.bottom {
+    padding-top: 100px;
+}
+
+.print {
+    margin: auto;
+    text-align: center;
+}

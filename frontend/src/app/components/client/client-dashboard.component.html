@@ -1,0 +1,76 @@
+<div class="main-container">
+    <h4 class="header">
+        Your order history for the past
+        <mat-form-field>
+            <mat-select [(value)]="default" (valueChange)="getStats()">
+                <mat-option *ngFor="let option of options" [value]="option.value">{{option.label}}</mat-option>
+            </mat-select>
+        </mat-form-field>
+        :
+    </h4>
+
+    <mat-divider></mat-divider>
+
+    <div *ngIf="!!stats; else loading">
+        <div *ngIf="data; else noData" class="main-container">
+            <mat-grid-list cols="4" rowHeight="100px">
+                <mat-grid-tile>
+                    <mat-card>
+                        <mat-card-header>
+                            <mat-card-title>Total sales</mat-card-title>
+                        </mat-card-header>
+                        <mat-card-content>
+                            <p>{{stats.sales | currency}}</p>
+                        </mat-card-content>
+                    </mat-card>
+                </mat-grid-tile>
+
+                <mat-grid-tile colspan="3">
+                    <mat-card>
+                        <mat-card-header>
+                            <mat-card-title>Top selling items</mat-card-title>
+                        </mat-card-header>
+                        <mat-card-content class="items">
+                            <div class="inner">
+                                {{stats.top[0].name | titlecase}}<br>({{stats.top[0].quantity}})
+                            </div>
+                            <mat-divider [vertical]="true"></mat-divider>
+                            <div class="inner">
+                                {{stats.top[1].name | titlecase}}<br>({{stats.top[1].quantity}})
+                            </div>
+                            <mat-divider [vertical]="true"></mat-divider>
+                            <div class="inner">
+                                {{stats.top[2].name | titlecase}}<br>({{stats.top[2].quantity}})
+                            </div>
+                        </mat-card-content>
+                    </mat-card>
+                </mat-grid-tile>
+            </mat-grid-list>
+        </div>
+    </div>
+    <div class="main-container">
+        <canvas id="canvas">
+            <div *ngIf="data">
+                {{chart}}
+            </div>
+        </canvas>
+    </div>
+</div>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Loading...</h6>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #noData>
+    <div class="center">
+        <img src="https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/chart-error.png">
+        <h6 class="main-container">Not enough data to work with :(</h6>
+    </div>
+</ng-template>

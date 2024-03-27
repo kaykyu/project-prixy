@@ -1,0 +1,38 @@
+<div *ngIf="menu$ | async as menu; else loading">
+    <mat-tab-group dynamicHeight color="accent">
+        <mat-tab *ngFor="let category of categories$ | async" [label]="category">
+            <div class="main-container" *ngFor="let m of filter(menu, category)">
+                <mat-card>
+                    <mat-card-header>
+                        <mat-card-title>{{m.name}}</mat-card-title>
+                        <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
+                    </mat-card-header>
+                    <mat-card-content>
+                        <table>
+                            <tr>
+                                <td class="image"><img mat-card-sm-image [src]="m.image"></td>
+                                <td>{{m.description}}</td>
+                            </tr>
+                        </table>
+                    </mat-card-content>
+                    <mat-card-actions align="end">
+                        <button mat-button (click)="toCart(m, 1)"><mat-icon>add</mat-icon></button>
+                        <span class="quantity">{{m.quantity}}</span>
+                        <button mat-button (click)="toCart(m, -1)" [disabled]="m.quantity == 0"><mat-icon>remove</mat-icon></button>
+                    </mat-card-actions>
+                </mat-card>
+            </div>
+        </mat-tab>
+    </mat-tab-group>
+</div>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Loading...</h6>
+        </div>
+    </div>
+</ng-template>

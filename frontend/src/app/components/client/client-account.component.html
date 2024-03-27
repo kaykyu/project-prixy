@@ -1,0 +1,190 @@
+<div class="main-container">
+    <form [formGroup]="emailForm">
+        <table class="table table-hover">
+            <tbody>
+                <tr>
+                    <th>Email</th>
+                    <td *ngIf="!changeEmail">
+                        {{emailForm.value.email}}
+                    </td>
+                    <td *ngIf="changeEmail">
+                        <form [formGroup]="emailForm">
+                            <mat-form-field>
+                                <input matInput type="email" formControlName="email">
+                            </mat-form-field>
+                        </form>
+                    </td>
+                    <td>@if (emailForm.controls['email'].hasError('email') &&
+                        !emailForm.controls['email'].hasError('required')) {
+                        <mat-error>Please enter a valid email address</mat-error>
+                        }
+                        @if (emailForm.controls['email'].hasError('required')) {
+                        <mat-error>Email is <strong>required</strong></mat-error>
+                        }
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th></th>
+                    <td colspan="2">
+                        <div *ngIf="!changeEmail">
+                            <button mat-raised-button color="primary"
+                                (click)="changeEmail = !changeEmail"><mat-icon>email</mat-icon>Change
+                                Email</button>
+                            <button mat-raised-button color="accent"
+                                (click)="changePw()"><mat-icon>password</mat-icon>Change
+                                password</button>
+                        </div>
+
+                        <div *ngIf="changeEmail">
+                            <button mat-raised-button (click)="emailCancel()"
+                                color="warn"><mat-icon>close</mat-icon>Cancel</button>
+
+                            <button mat-raised-button (click)="emailDone()"
+                                color="accent"><mat-icon>done</mat-icon>Done</button>
+                        </div>
+
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+
+    <form [formGroup]="form">
+        <table class="table table-hover">
+            <tbody>
+                <tr>
+                    <th>Establishment Name</th>
+                    <td *ngIf="!editing">{{form.value.estName}}</td>
+                    <td *ngIf="editing">
+                        <mat-form-field>
+                            <input matInput type="text" formControlName="estName">
+                        </mat-form-field>
+                    </td>
+                    <td>
+                        @if (form.controls['estName'].hasError('minlength') ||
+                        form.controls['estName'].hasError('maxlength')) {
+                        <mat-error>Establishment name must be between <strong>3 - 20</strong>
+                            characters.</mat-error>
+                        }
+                        @if (form.controls['estName'].hasError('required')) {
+                        <mat-error>Establishment name is <strong>required</strong>.</mat-error>
+                        }
+                    </td>
+                </tr>
+                <tr>
+                    <th>GST ({{gst}}%)</th>
+                    <td *ngIf="!editing">{{form.value.gst ? 'Yes' : 'No'}}</td>
+                    <td *ngIf="editing">
+                        <mat-radio-group formControlName="gst">
+                            <mat-radio-button [value]="true">Yes</mat-radio-button>
+                            <mat-radio-button [value]="false">No</mat-radio-button>
+                        </mat-radio-group>
+                    </td>
+                    <td></td>
+                </tr>
+                <tr>
+                    <th>Service charge</th>
+                    <td *ngIf="!editing">{{form.value.svcCharge}}%</td>
+                    <td *ngIf="editing">
+                        <mat-form-field>
+                            <input matInput type="number" formControlName="svcCharge">
+                        </mat-form-field>
+                    </td>
+                    <td>
+                        @if (form.controls['svcCharge'].hasError('required')) {
+                        <mat-error>Service charge is <strong>required</strong>. Please input 0 if not
+                            applicable.</mat-error>
+                        }
+                    </td>
+                </tr>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <th></th>
+                    <td colspan="2">
+                        <button *ngIf="!editing" mat-raised-button (click)="editing = true"
+                            color="primary"><mat-icon>edit</mat-icon>Edit
+                            details</button>
+
+                        <div *ngIf="editing">
+                            <button mat-raised-button (click)="cancel()"
+                                color="warn"><mat-icon>close</mat-icon>Cancel</button>
+                            <button mat-raised-button (click)="done()"
+                                color="accent"><mat-icon>done</mat-icon>Done</button>
+                        </div>
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </form>
+</div>
+
+<ng-template #pw>
+    <h2 mat-dialog-title>Change Password</h2>
+    <mat-dialog-content>
+        <form [formGroup]="pwForm">
+            <p>
+                <mat-form-field>
+                    <mat-label>Current Password</mat-label>
+                    <input matInput placeholder="Current Password" formControlName="oldPw" [type]="hide ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw'].hasError('pattern') &&
+                    !pwForm.controls['pw'].hasError('required')) {
+                    <mat-error
+                        matTooltip="At least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter and 1 number, can contain special characters">
+                        Password <strong>does not</strong> fulfil requirements</mat-error>
+                    }
+                    @if (pwForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>New Password</mat-label>
+                    <input matInput placeholder="New Password" formControlName="pw" [type]="hide2 ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide2 = !hide2"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide2">
+                        <mat-icon>{{hide2 ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw'].hasError('pattern') &&
+                    !pwForm.controls['pw'].hasError('required')) {
+                    <mat-error
+                        matTooltip="At least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter and 1 number, can contain special characters">
+                        Password <strong>does not</strong> fulfil requirements</mat-error>
+                    }
+                    @if (pwForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>Confirm new password</mat-label>
+                    <input matInput placeholder="Please confirm your password" formControlName="pw2"
+                        [type]="hide3 ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide3 = !hide3"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide3">
+                        <mat-icon>{{hide3 ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw2'].hasError('notMatched') &&
+                    !pwForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Passwords entered are <strong>not the same</strong>!</mat-error>
+                    }
+                    @if (pwForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Please <strong>confirm</strong> your password.</mat-error>
+                    }
+                </mat-form-field>
+            </p>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="center">
+        <button mat-raised-button color="warn" mat-dialog-close><mat-icon>close</mat-icon>Cancel</button>
+        <button mat-raised-button color="accent" (click)="pwDone()" [disabled]="pwForm.invalid"><mat-icon>done</mat-icon>Done</button>
+    </mat-dialog-actions>
+</ng-template>

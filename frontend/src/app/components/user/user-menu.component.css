@@ -1,0 +1,11 @@
+mat-card {
+    width: 100%;
+}
+
+.image {
+    padding-right: 10px;
+}
+
+.quantity {
+    color: slategray;
+}

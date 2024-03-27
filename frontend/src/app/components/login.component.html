@@ -1,0 +1,136 @@
+<mat-grid-list cols="2" rowHeight="100%" *ngIf="!isLogin; else loading">
+    <mat-grid-tile>
+        <div class="left">
+            <img src="https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/logo.png" width="75%">
+        </div>
+    </mat-grid-tile>
+
+    <mat-grid-tile class="purple" *ngIf="!isLogin; else loading">
+        <div class="right" *ngIf="!isSignup; else register">
+            <form [formGroup]="form" (submit)="login()">
+                <div class="top">
+                    <button mat-raised-button color="accent" type="button" (click)="newSignup()">
+                        Sign Up</button>
+                    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Login</button>
+                </div>
+                <p>
+                    <mat-form-field>
+                        <mat-label>Email</mat-label>
+                        <input matInput type="email" formControlName="email">
+                        @if (form.controls['email'].hasError('email') &&
+                        !form.controls['email'].hasError('required')) {
+                        <mat-error>Please enter a valid email address</mat-error>
+                        }
+                        @if (form.controls['email'].hasError('required')) {
+                        <mat-error>Email is <strong>required</strong></mat-error>
+                        }
+                    </mat-form-field>
+                </p>
+                <p>
+                    <mat-form-field>
+                        <mat-label>Password</mat-label>
+                        <input matInput formControlName="pw" [type]="hide ? 'password' : 'text'">
+                        <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                            <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                        </button>
+                        @if (form.controls['pw'].hasError('required')) {
+                        <mat-error>Password is <strong>required</strong></mat-error>
+                        }
+                    </mat-form-field>
+                </p>
+            </form>
+        </div>
+    </mat-grid-tile>
+</mat-grid-list>
+
+<ng-template #register>
+    <div class="right">
+        <form [formGroup]="signupForm" (submit)="signup()">
+            <div class="top">
+                <button mat-raised-button color="accent" type="button" (click)="isSignup = false">Back</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+            </div>
+            <p>
+                <mat-form-field>
+                    <mat-label>Email</mat-label>
+                    <input matInput placeholder="example@example.com" type="email" formControlName="email">
+                    @if (signupForm.controls['email'].hasError('email') &&
+                    !signupForm.controls['email'].hasError('required')) {
+                    <mat-error>Please enter a valid email address</mat-error>
+                    }
+                    @if (signupForm.controls['email'].hasError('required')) {
+                    <mat-error>Email is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>Establishment Name</mat-label>
+                    <input matInput placeholder="Establishment name" type="text" formControlName="estName">
+                    @if (signupForm.controls['estName'].hasError('minlength') ||
+                    signupForm.controls['estName'].hasError('maxlength')) {
+                    <mat-error>Establishment name must be between <strong>3 - 20</strong> characters.</mat-error>
+                    }
+                    @if (signupForm.controls['estName'].hasError('required')) {
+                    <mat-error>Establishment name is <strong>required</strong>.</mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>Password</mat-label>
+                    <input matInput placeholder="Password" formControlName="pw" [type]="hide ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (signupForm.controls['pw'].hasError('pattern') &&
+                    !signupForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password <strong>does not</strong> fulfil requirements</mat-error>
+                    }
+                    @if (signupForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>Confirm password</mat-label>
+                    <input matInput placeholder="Please confirm your password" formControlName="pw2"
+                        [type]="hide2 ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide2 = !hide2"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide2">
+                        <mat-icon>{{hide2 ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (signupForm.controls['pw2'].hasError('notMatched') &&
+                    !signupForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Passwords entered are <strong>not the same</strong>!</mat-error>
+                    }
+                    @if (signupForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Please <strong>confirm</strong> your password.</mat-error>
+                    }
+                </mat-form-field>
+            </p>
+        </form>
+        <div>
+            Password requirements:
+            <ul>
+                <li>At least 8 characters</li>
+                <li>Must contain at least 1 uppercase letter, 1 lowercase letter and 1 number</li>
+                <li>Can contain special characters</li>
+            </ul>
+        </div>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Signing you in</h6>
+        </div>
+    </div>
+</ng-template>

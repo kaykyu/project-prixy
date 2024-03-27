@@ -1,0 +1,30 @@
+html,
+body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    overflow: auto;
+}
+
+.client {
+    background-color: #f0f0ff;
+    min-height: 100vh;
+}
+
+.user {
+    background-color: #fff8f0;
+    min-height: 100vh;
+}
+
+.center {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    min-height: 100vh;
+}
+
+.main-container {
+    padding-top: 10px;
+}

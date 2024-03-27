@@ -1,0 +1,26 @@
+mat-form-field {
+    width: 60%;
+}
+
+.purple {
+    background-color: #c2c2ff;
+}
+
+.left {
+    width: 95%;
+    text-align: right;
+    margin-bottom: 10%;
+}
+
+.right {
+    width: 95%;
+    text-align: left;
+}
+
+.top {
+    margin-bottom: 30px;
+}
+
+button {
+    margin-right: 10px;
+}

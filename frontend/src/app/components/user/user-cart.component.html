@@ -1,0 +1,117 @@
+<div class="main-container" *ngIf="initDone; else loading">
+    <div *ngIf="cart.length > 0; else noCart">
+
+        <mat-stepper orientation="vertical" #stepper>
+            <mat-step>
+                <ng-template matStepLabel>Confirm your order</ng-template>
+                <table mat-table [dataSource]="cart">
+                    <ng-container matColumnDef="item">
+                        <th mat-header-cell *matHeaderCellDef> Item </th>
+                        <td mat-cell *matCellDef="let c"> {{c.name}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="quantity">
+                        <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                        <td mat-cell *matCellDef="let c"> {{c.quantity}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="amount">
+                        <th mat-header-cell *matHeaderCellDef> Amount </th>
+                        <td mat-cell *matCellDef="let c"> {{c.price * c.quantity | currency}} </td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="service">
+                        <th mat-footer-cell *matFooterCellDef colspan="2" class="footer-text">Service charge
+                            ({{tax.svc}}%):</th>
+                    </ng-container>
+
+                    <ng-container matColumnDef="svcAmt">
+                        <td mat-footer-cell *matFooterCellDef>{{svcFee | currency}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="gst">
+                        <th mat-footer-cell *matFooterCellDef colspan="2" class="footer-text">GST({{gstAmount}}%):</th>
+                    </ng-container>
+
+                    <ng-container matColumnDef="gstAmt">
+                        <td mat-footer-cell *matFooterCellDef>{{sum/(100+gstAmount)*gstAmount | currency}}</td>
+                    </ng-container>
+
+                    <ng-container matColumnDef="total">
+                        <th mat-footer-cell *matFooterCellDef colspan="2" class="footer-text">Total:</th>
+                    </ng-container>
+
+                    <ng-container matColumnDef="totalAmt">
+                        <td mat-footer-cell *matFooterCellDef><b>{{sum | currency}}</b></td>
+                    </ng-container>
+
+                    <tr mat-header-row *matHeaderRowDef="tableCols"></tr>
+                    <tr mat-row *matRowDef="let row; columns: tableCols"></tr>
+                    <tr mat-footer-row *matFooterRowDef="['service', 'svcAmt']" [hidden]="!(tax.svc > 0)"></tr>
+                    <tr mat-footer-row *matFooterRowDef="['gst', 'gstAmt']" [hidden]="!tax.gst"></tr>
+                    <tr mat-footer-row *matFooterRowDef="['total', 'totalAmt']"></tr>
+                </table>
+
+                <button mat-raised-button color="accent" (click)="getDetails()" matStepperNext><mat-icon>receipt_long</mat-icon>Order</button>
+            </mat-step>
+
+            <mat-step [stepControl]="form">
+                <ng-template matStepLabel>Wnter your personal details</ng-template>
+                <ng-template matStepContent>
+                    <form [formGroup]="form">
+                        <p>
+                            <mat-form-field>
+                                <mat-label>Name</mat-label>
+                                <input matInput type="text" formControlName="name">
+                                @if (form.controls['name'].hasError('minlength') ||
+                                form.controls['name'].hasError('maxlength'))
+                                {
+                                <mat-error>Name must be between <strong>3 - 20</strong> characters</mat-error>
+                                }
+                                @if (form.controls['name'].hasError('required')) {
+                                <mat-error>Name is <strong>required</strong></mat-error>
+                                }
+                            </mat-form-field>
+                        </p>
+                        <p>
+                            <mat-form-field>
+                                <mat-label>Email</mat-label>
+                                <input matInput type="email" formControlName="email">
+                                @if (form.controls['email'].hasError('email') &&
+                                !form.controls['email'].hasError('required')) {
+                                <mat-error>Please enter a valid email address</mat-error>
+                                }
+                                @if (form.controls['email'].hasError('required')) {
+                                <mat-error>Email is <strong>required</strong></mat-error>
+                                }
+                            </mat-form-field>
+                        </p>
+                    </form>
+                    <button mat-raised-button color="warn" matStepperPrevious><mat-icon>expand_less</mat-icon>Back</button>
+                    <button mat-raised-button (click)="processOrder()"
+                        [disabled]="form.invalid"><mat-icon>credit_card</mat-icon>Make
+                        Payment</button>
+
+                </ng-template>
+            </mat-step>
+        </mat-stepper>
+    </div>
+</div>
+
+<ng-template #noCart>
+    <div class="center">
+        <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="300px">
+        <h5>Your cart is empty.</h5>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Loading...</h6>
+        </div>
+    </div>
+</ng-template>

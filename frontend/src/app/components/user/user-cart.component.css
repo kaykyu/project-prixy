@@ -1,0 +1,11 @@
+.footer-text {
+    text-align: right;
+}
+
+button {
+    margin-top: 10px;
+}
+
+mat-form-field {
+    width: 100%;
+}

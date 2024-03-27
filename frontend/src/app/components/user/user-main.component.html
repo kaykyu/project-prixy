@@ -1,0 +1,15 @@
+<div class="user">
+    <mat-toolbar color="accent">
+        <span>{{user.client| titlecase}}</span>
+        <span class="spacer"></span>
+        <button mat-icon-button *ngFor="let link of links" [routerLink]="link.path" [routerLinkActive]="['is-active']"
+            [matTooltip]="link.tip"><mat-icon>{{link.label}}</mat-icon>
+        </button>
+    </mat-toolbar>
+
+    <div class="container">
+        <router-outlet (activate)="onRouting($event)"></router-outlet>
+    </div>
+
+    <div class="footer">Powered by Prixy</div>
+</div>

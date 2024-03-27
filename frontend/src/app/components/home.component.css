@@ -1,0 +1,20 @@
+.purple {
+    background-color: #c2c2ff;
+}
+
+.left {
+    width: 95%;
+    text-align: right;
+    margin-bottom: 10%;
+}
+
+.right {
+    width: 95%;
+    text-align: left;
+}
+
+.slogan {
+    font-weight: 400;
+    font-style: italic;
+    margin-bottom: 15px;
+}

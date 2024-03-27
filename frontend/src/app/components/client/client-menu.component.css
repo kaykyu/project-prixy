@@ -1,0 +1,23 @@
+mat-card.menu {
+    width: 300px;
+    margin: 10px;
+}
+
+mat-form-field {
+    width: 100%;
+}
+
+.search {
+    padding: 10px;
+}
+
+.menu {
+    display: inline-block; 
+}
+
+.add-button {
+    position: fixed;
+    bottom: 5%;
+    right: 5%;
+    z-index: 10;
+}

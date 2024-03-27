@@ -1,0 +1,14 @@
+.topnav {
+    background-color: #aaaaff;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+}
+
+.is-active {
+    background-color: #ffc285;
+}
+
+.spacer {
+    flex: 1 1 auto;
+}

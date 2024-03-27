@@ -1,0 +1,28 @@
+<div *ngIf="client; else loading" class="client">
+    <mat-toolbar class="topnav">
+        <span>{{client.estName| titlecase}}</span>
+
+        <span class="spacer"></span>
+
+        <button mat-icon-button *ngFor="let link of links" [routerLink]="link.path" [routerLinkActive]="['is-active']"
+            [matTooltip]="link.tip"><mat-icon>{{link.label}}</mat-icon>
+        </button>
+        <button mat-icon-button [routerLink]="['/']" (click)="logout()"
+            matTooltip="Log out"><mat-icon>logout</mat-icon></button>
+    </mat-toolbar>
+
+    <div class="container">
+        <router-outlet (activate)="onRouting($event)"></router-outlet>
+    </div>
+</div>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Loading...</h6>
+        </div>
+    </div>
+</ng-template>
