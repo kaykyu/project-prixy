@@ -35,6 +35,7 @@ public class AuthService implements UserDetailsService {
     public JsonObject signup(Login login) {
         if (authRepo.userExist(login.getEmail()))
             return Json.createObjectBuilder().add("error", "Email already exists.").build();
+        authRepo.signup(login);
         clientRepo.signUp(login, UUID.randomUUID().toString().substring(0, 8));
         return JsonObject.EMPTY_JSON_OBJECT;
     }

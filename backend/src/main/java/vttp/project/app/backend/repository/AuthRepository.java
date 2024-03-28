@@ -12,6 +12,10 @@ public class AuthRepository {
     @Resource(name = "redisUsers")
     private ValueOperations<String, String> userValueOps;
 
+    public void signup(Login login) {
+        userValueOps.set(login.getEmail(), login.getPw());
+    }
+
     public Login getLogin(String email) {
         return new Login(email, userValueOps.get(email));
     }

@@ -34,7 +34,10 @@ export class ClientDashboardComponent implements OnInit {
         this.stats = value
       })
       .then(() => this.createChart())
-      .catch(() => this.data = false)
+      .catch(() => {
+        this.stats = {sales: 0, top: [], hourly: []}
+        this.data = false
+      })
   }
 
   processHourlyCount(): number[] {

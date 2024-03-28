@@ -52,6 +52,5 @@ create table order_items (
     order_id char(8) not null,
 
     primary key (id),
-    constraint fk_item_id foreign key(item_id) references menu(id),
-    constraint fk_order_id foreign key (order_id) references confirmed_orders(id)
+    constraint fk_item_id foreign key(item_id) references menu(id)
 )

@@ -33,14 +33,12 @@ public class SecurityConfig {
     @Value("${jwt.secret.key}")
     private String secretKey;
 
-    private static final String[] PUBLIC_URLS = { "/api/auth/**", "/api/user/**", "/websocket/**" };
-
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers(PUBLIC_URLS).permitAll()
-                                .anyRequest().authenticated())
+                        auth -> auth.requestMatchers("/api/client/**").authenticated()
+                                .anyRequest().permitAll())
                 .userDetailsService(authSvc)
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
