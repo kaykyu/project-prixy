@@ -1,4 +1,4 @@
-import { NgModule } from '@angular/core';
+import { NgModule, isDevMode } from '@angular/core';
 import { BrowserModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
@@ -22,6 +22,7 @@ import { ClientDashboardComponent } from './components/client/client-dashboard.c
 import { ClientMenuDetailsComponent } from './components/client/client-menu-details.component';
 import { ClientAccountComponent } from './components/client/client-account.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
+import { ServiceWorkerModule } from '@angular/service-worker';
 
 @NgModule({
   declarations: [
@@ -47,7 +48,13 @@ import { ImageCropperModule } from 'ngx-image-cropper';
     ReactiveFormsModule,
     HttpClientModule,
     MaterialModule,
-    ImageCropperModule
+    ImageCropperModule,
+    ServiceWorkerModule.register('ngsw-worker.js', {
+      enabled: !isDevMode(),
+      // Register the ServiceWorker as soon as the application is stable
+      // or after 30 seconds (whichever comes first).
+      registrationStrategy: 'registerWhenStable:30000'
+    })
   ],
   providers: [
     provideAnimationsAsync()

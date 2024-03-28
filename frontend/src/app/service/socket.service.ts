@@ -21,16 +21,16 @@ export class SocketService {
 
   onWebSocketclose() {
     console.log('Disconnected from Websocket')
-    this.ws.close();
+    this.ws.close()
   }
 
   async onConnect(id: string): Promise<any> {
     return new Promise(resolve => {
       console.log("Connecting...")
-      this.ws = new WebSocket(`ws://${window.location.host}/websocket/${id}`)
+      this.ws = new WebSocket(`wss://${window.location.host}/websocket/${id}`)
       this.ws.onopen = this.onWebSocketOpen.bind(this)
       this.ws.onmessage = this.onWebSocketMessage.bind(this)
-      this.ws.onclose = this.onWebSocketclose.bind(this)
+      this.onWebSocketclose.bind(this)
       resolve(this.ws)
     })
   }
