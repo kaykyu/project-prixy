@@ -31,15 +31,15 @@
                             <mat-card-title>Top selling items</mat-card-title>
                         </mat-card-header>
                         <mat-card-content class="items">
-                            <div class="inner">
+                            <div class="inner" *ngIf="stats.top.length > 0">
                                 {{stats.top[0].name | titlecase}}<br>({{stats.top[0].quantity}})
                             </div>
                             <mat-divider [vertical]="true"></mat-divider>
-                            <div class="inner">
+                            <div class="inner" *ngIf="stats.top.length > 1">
                                 {{stats.top[1].name | titlecase}}<br>({{stats.top[1].quantity}})
                             </div>
                             <mat-divider [vertical]="true"></mat-divider>
-                            <div class="inner">
+                            <div class="inner" *ngIf="stats.top.length > 2">
                                 {{stats.top[2].name | titlecase}}<br>({{stats.top[2].quantity}})
                             </div>
                         </mat-card-content>

@@ -1,4 +1,4 @@
-import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { UserStoreService } from '../../service/user-store.service';
 import { Subscription, tap } from 'rxjs';
 import { Order, Tax, User } from '../../models';
@@ -6,6 +6,7 @@ import { UserService } from '../../service/user.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
 import { ActivatedRoute } from '@angular/router';
+import { StepperSelectionEvent } from '@angular/cdk/stepper';
 
 @Component({
   selector: 'app-user-cart',
@@ -63,11 +64,14 @@ export class UserCartComponent implements OnInit, OnDestroy {
       .subscribe()
   }
 
-  getDetails() {
-    this.form = this.fb.group({
-      name: this.fb.control<string>('', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]),
-      email: this.fb.control<string>('', [Validators.email, Validators.required])
-    })
+  selectionChange(event: StepperSelectionEvent) {
+    if (event.selectedStep.label == "details") {
+      this.form = this.fb.group({
+        name: this.fb.control<string>('', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]),
+        email: this.fb.control<string>('', [Validators.email, Validators.required]),
+        comments: this.fb.control<string>('', Validators.maxLength(200))
+      })
+    }
   }
 
   processOrder() {
@@ -78,7 +82,8 @@ export class UserCartComponent implements OnInit, OnDestroy {
       cart: this.cart,
       amount: this.sum.toFixed(2),
       name: this.form.value.name,
-      email: this.form.value.email
+      email: this.form.value.email,
+      comments: this.form.value.comments
     }
     this.userSvc.makeOrder(req)
   }

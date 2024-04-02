@@ -27,9 +27,6 @@ public class RedisConfig {
     @Value("${spring.redis.database.users}")
     private Integer redisUsersDatabase;
 
-    @Value("${spring.redis.database.orders}")
-    private Integer redisOrdersDatabase;
-
     public JedisConnectionFactory createConnectionFactory(Integer database) {
 
         RedisStandaloneConfiguration config = new RedisStandaloneConfiguration();
@@ -54,17 +51,6 @@ public class RedisConfig {
 
         RedisTemplate<String, String> template = new RedisTemplate<>();
         template.setConnectionFactory(createConnectionFactory(redisUsersDatabase));
-
-        template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
-        return template;
-    }
-
-    @Bean
-    public RedisTemplate<String, String> redisOrders() {
-
-        RedisTemplate<String, String> template = new RedisTemplate<>();
-        template.setConnectionFactory(createConnectionFactory(redisOrdersDatabase));
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());

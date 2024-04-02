@@ -23,6 +23,7 @@ public class EmailService {
     private String sendgridKey;
 
     public void sendReceipt(String email, String url) throws IOException {
+        
         RestTemplate template = new RestTemplate();
         ResponseEntity<String> receipt = template.exchange(RequestEntity.get(url).build(), String.class);
 

@@ -3,6 +3,7 @@ package vttp.project.app.backend.repository;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
+import java.util.TimeZone;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +36,7 @@ public class StatsRepository {
     }
 
     public Long today() {
+
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
         cal.set(Calendar.MINUTE, 0);
@@ -43,43 +45,56 @@ public class StatsRepository {
         return cal.getTime().getTime();
     }
 
-    public MatchOperation matchFilter(Integer days, String id) {
+    public Criteria filter(String id, Integer days) {
+
         Long duration = (long) days * 24 * 60 * 60 * 1000;
-        return Aggregation.match(Criteria
+        return Criteria
                 .where("ordered_date").gte(new Date(today() - duration))
-                .and("client_id").is(id));
+                .and("client_id").is(id);
+    }
+
+    public MatchOperation matchFilter(String id, Integer days) {
+        return Aggregation.match(filter(id, days));
     }
 
     public Document totalSales(MatchOperation matchOps) {
+
         GroupOperation groupOps = Aggregation.group().sum("amount").as("sales");
         Aggregation pipeline = Aggregation.newAggregation(matchOps, groupOps);
         return mongoTemplate.aggregate(pipeline, COLL, Document.class).getUniqueMappedResult();
     }
 
     public List<Document> topSelling(MatchOperation matchOps) {
+
         UnwindOperation unwindOps = Aggregation.unwind("orders");
         GroupOperation groupOps = Aggregation.group("orders.id")
                 .sum("orders.quantity").as("quantity")
                 .last("orders.name").as("name");
         SortOperation sortOps = Aggregation.sort(Sort.by(Direction.DESC, "quantity"));
         LimitOperation limitOps = Aggregation.limit(3);
+
         Aggregation pipeline = Aggregation.newAggregation(matchOps, unwindOps, groupOps, sortOps, limitOps);
         return mongoTemplate.aggregate(pipeline, COLL, Document.class).getMappedResults();
     }
 
     public List<Document> countByHour(MatchOperation matchOps) {
+
         ProjectionOperation projectOps = Aggregation.project()
-                .and(DateOperators.Hour.hourOf("ordered_date")).as("hour")
+                .and(DateOperators.zonedDateOf("ordered_date", DateOperators.Timezone.fromZone(TimeZone.getDefault())).hour())
+                .as("hour")
                 .andExclude("_id");
+
         GroupOperation groupOps = Aggregation.group("hour")
                 .count().as("count");
         SortOperation sortOps = Aggregation.sort(Sort.by(Direction.ASC, "_id"));
+
         Aggregation pipeline = Aggregation.newAggregation(matchOps, projectOps, groupOps, sortOps);
         return mongoTemplate.aggregate(pipeline, COLL, Document.class).getMappedResults();
     }
 
     public Document getAll(String id, Integer days) throws Exception {
-        MatchOperation matchOps = matchFilter(days, id);
+
+        MatchOperation matchOps = matchFilter(id, days);
         return totalSales(matchOps)
                 .append("top", topSelling(matchOps))
                 .append("hourly", countByHour(matchOps));

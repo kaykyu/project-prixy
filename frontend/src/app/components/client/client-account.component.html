@@ -86,16 +86,19 @@
                 </tr>
                 <tr>
                     <th>Service charge</th>
-                    <td *ngIf="!editing">{{form.value.svcCharge}}%</td>
+                    <td *ngIf="!editing">{{form.value.svc}}%</td>
                     <td *ngIf="editing">
                         <mat-form-field>
-                            <input matInput type="number" formControlName="svcCharge">
+                            <input matInput type="number" formControlName="svc">
                         </mat-form-field>
                     </td>
                     <td>
-                        @if (form.controls['svcCharge'].hasError('required')) {
+                        @if (form.controls['svc'].hasError('required')) {
                         <mat-error>Service charge is <strong>required</strong>. Please input 0 if not
                             applicable.</mat-error>
+                        }
+                        @if (form.controls['svc'].hasError('min')) {
+                        <mat-error>Service charge must be at least <strong>0</strong>.</mat-error>
                         }
                     </td>
                 </tr>
@@ -128,7 +131,8 @@
             <p>
                 <mat-form-field>
                     <mat-label>Current Password</mat-label>
-                    <input matInput placeholder="Current Password" formControlName="oldPw" [type]="hide ? 'password' : 'text'">
+                    <input matInput placeholder="Current Password" formControlName="oldPw"
+                        [type]="hide ? 'password' : 'text'">
                     <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
                         [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
                         <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -147,7 +151,8 @@
             <p>
                 <mat-form-field>
                     <mat-label>New Password</mat-label>
-                    <input matInput placeholder="New Password" formControlName="pw" [type]="hide2 ? 'password' : 'text'">
+                    <input matInput placeholder="New Password" formControlName="pw"
+                        [type]="hide2 ? 'password' : 'text'">
                     <button mat-icon-button matSuffix type="button" (click)="hide2 = !hide2"
                         [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide2">
                         <mat-icon>{{hide2 ? 'visibility_off' : 'visibility'}}</mat-icon>
@@ -185,6 +190,7 @@
     </mat-dialog-content>
     <mat-dialog-actions align="center">
         <button mat-raised-button color="warn" mat-dialog-close><mat-icon>close</mat-icon>Cancel</button>
-        <button mat-raised-button color="accent" (click)="pwDone()" [disabled]="pwForm.invalid"><mat-icon>done</mat-icon>Done</button>
+        <button mat-raised-button color="accent" (click)="pwDone()"
+            [disabled]="pwForm.invalid"><mat-icon>done</mat-icon>Done</button>
     </mat-dialog-actions>
 </ng-template>

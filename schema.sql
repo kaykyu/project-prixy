@@ -10,7 +10,6 @@ create table clients (
     est_name varchar(128) not null,
     service_charge int default 0,
     gst boolean default false,
-    status boolean default false,
 
     primary key(email),
     key(id),
@@ -37,10 +36,14 @@ create table orders (
     table_id varchar(8) not null, 
     email varchar(128) not null,
     name varchar(128),
-    receipt text,
+    comments text,
+    payment_id varchar(32),
     amount decimal(6,2) not null,
+    progress int not null default 0,
+    status ENUM('RECEIVED','IN_PROGRESS', 'OUT_FOR_DELIVERY') not null default 'RECEIVED',
 
    primary key(id),
+   key (payment_id),
    constraint fk_client_id foreign key(client_id) references clients(id)
 );
 
@@ -50,7 +53,17 @@ create table order_items (
     item_name varchar(128),
     quantity int,
     order_id char(8) not null,
+    completed boolean not null default false,
 
     primary key (id),
+    key (item_id, order_id),
     constraint fk_item_id foreign key(item_id) references menu(id)
+);
+
+create table stripe_charge (
+    id varchar(32),
+    payment_id varchar(32),
+    receipt text,
+
+    primary key(id)
 )

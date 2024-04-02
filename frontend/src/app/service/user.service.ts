@@ -24,10 +24,6 @@ export class UserService {
     )
   }
 
-  checkStatus(client: string): Promise<boolean> {
-    return firstValueFrom(this.http.get<boolean>(`/api/user/${client}/status`))
-  }
-
   getMenu(client: string): Promise<Menu[]> {
     return firstValueFrom(this.http.get<Menu[]>(`/api/user/${client}/menu`))
   }

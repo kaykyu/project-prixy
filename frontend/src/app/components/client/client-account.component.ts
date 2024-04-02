@@ -34,8 +34,8 @@ export class ClientAccountComponent implements OnInit {
   ngOnInit(): void {
     this.form = this.fb.group({
       estName: this.fb.control<string>(this.client.estName, [Validators.required, Validators.minLength(3), Validators.maxLength(20)]),
-      gst: this.fb.control<boolean>(this.client.gst, [Validators.required]),
-      svcCharge: this.fb.control<number>(this.client.svcCharge, [Validators.required])
+      gst: this.fb.control<boolean>(this.client.tax.gst, [Validators.required]),
+      svc: this.fb.control<number>(this.client.tax.svc, [Validators.required, Validators.min(0)])
     })
 
     this.emailForm = this.fb.group({
@@ -50,7 +50,13 @@ export class ClientAccountComponent implements OnInit {
 
   done() {
     this.editing = false
-    const client = this.form.value
+    const client = {
+      estName: this.form.value.estName,
+      tax: {
+        gst: this.form.value.gst,
+        svc: this.form.value.svc
+      }
+    }
     this.clientSvc.putClient(client)
       .then(value => {
         this.form.patchValue(value)

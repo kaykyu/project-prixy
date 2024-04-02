@@ -29,11 +29,6 @@ public class UserController {
     @Autowired
     private UserService userSvc;
 
-    @GetMapping(path = "/{id}/status")
-    public ResponseEntity<Boolean> getStatus(@PathVariable String id) {
-        return ResponseEntity.ok(userSvc.getStatus(id));
-    }
-
     @GetMapping(path = "/{id}/menu")
     public ResponseEntity<String> getMenu(@PathVariable String id) {
         return ResponseEntity.ok().body(userSvc.getMenu(id).toString());
@@ -46,6 +41,7 @@ public class UserController {
 
     @GetMapping(path = "/{id}/tax")
     public ResponseEntity<String> getTaxes(@PathVariable String id) {
+
         JsonObject result = userSvc.getTaxes(id);
         if (result.isEmpty())
             return ResponseEntity.notFound().build();
@@ -54,15 +50,17 @@ public class UserController {
 
     @PostMapping(path = "/order")
     public ResponseEntity<String> postOrder(@RequestBody String payload) {
+
         JsonObject jObject = Json.createReader(new StringReader(payload)).readObject();
         OrderRequest request = new OrderRequest(
                 Order.fromJson(jObject.getJsonArray("cart")),
                 Double.parseDouble(jObject.getString("amount")),
                 jObject.getString("name"),
-                jObject.getString("email"));
+                jObject.getString("email"),
+                jObject.getString("comments"));
         try {
             return ResponseEntity.ok()
-                    .body(userSvc.createPaymentSession(request, jObject.getString("token")).toString());
+                    .body(userSvc.newOrder(request, jObject.getString("token")).toString());
 
         } catch (StripeException e) {
             return ResponseEntity.internalServerError()
@@ -74,7 +72,7 @@ public class UserController {
     public ResponseEntity<Void> postWebhook(@RequestBody String payload,
             @RequestHeader("Stripe-Signature") String sig) {
         try {
-            userSvc.handleWebhookEvent(payload, sig);
+            userSvc.incomingWebhook(payload, sig);
             return ResponseEntity.ok().build();
 
         } catch (SignatureVerificationException e) {
@@ -93,6 +91,7 @@ public class UserController {
 
     @GetMapping(path = "/orders/{id}")
     public ResponseEntity<String> getOrders(@PathVariable String id) {
+        
         JsonArray result = userSvc.getOrders(id);
         if (result.size() < 1)
             return ResponseEntity.notFound().build();

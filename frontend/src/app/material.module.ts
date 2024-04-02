@@ -12,11 +12,11 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatTabsModule } from '@angular/material/tabs';
 import { MatTableModule } from '@angular/material/table';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
-import { MatSlideToggleModule } from '@angular/material/slide-toggle';
 import { MatTooltipModule } from '@angular/material/tooltip';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatStepperModule } from '@angular/material/stepper';
+import { MatMenuModule } from '@angular/material/menu';
 
 const MATERIAL = [
   MatGridListModule,
@@ -32,11 +32,11 @@ const MATERIAL = [
   MatTabsModule,
   MatTableModule,
   MatProgressBarModule,
-  MatSlideToggleModule,
   MatTooltipModule,
   MatProgressSpinnerModule,
   MatRadioModule,
-  MatStepperModule
+  MatStepperModule,
+  MatMenuModule
 ]
 
 @NgModule({

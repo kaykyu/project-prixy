@@ -1,10 +1,11 @@
 import { Component, ElementRef, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { ClientService } from '../../service/client.service';
-import { Observable, Subscription } from 'rxjs';
-import { Client, KitchenOrder } from '../../models';
+import { Observable, Subscription, firstValueFrom } from 'rxjs';
+import { Client, KitchenOrder, Order } from '../../models';
 import { SocketService } from '../../service/socket.service';
-import { MatSlideToggleChange } from '@angular/material/slide-toggle';
 import { MatDialog } from '@angular/material/dialog';
+import { Socket } from 'socket.io-client';
+import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 
 @Component({
   selector: 'app-client-kitchen',
@@ -16,6 +17,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   private clientSvc: ClientService = inject(ClientService)
   private socketSvc: SocketService = inject(SocketService)
   private dialog: MatDialog = inject(MatDialog)
+  private fb: FormBuilder = inject(FormBuilder)
 
   @Input() client!: Client
   orders$!: Observable<KitchenOrder[]>
@@ -23,58 +25,120 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   kitchenStatus!: boolean
   tableCols: string[] = ['name', 'quantity', 'action']
   @ViewChild('print') doc!: ElementRef
-  @ViewChild('link') template!: TemplateRef<any>
+  @ViewChild('link') qrTemplate!: TemplateRef<any>
   qrCode: string = ''
   timestamp: number = 0
   orderUrl: string = ''
+  socket!: Socket
+  form!: FormGroup
+  @ViewChild('edit') editTemplate!: TemplateRef<any>
 
 
   ngOnInit(): void {
     this.kitchenStatus = this.client.status
-
     this.orders$ = this.clientSvc.getKitchenOrders()
     this.socketSvc.onConnect(this.client.id)
-      .then(() => this.socketSub = this.socketSvc.socket.asObservable().subscribe({
-        next: () => this.orders$ = this.clientSvc.getKitchenOrders()
-      }))
+      .then(() => {
+        this.socketSub = this.socketSvc.socket.asObservable().subscribe({
+          next: () => this.orders$ = this.clientSvc.getKitchenOrders()
+        })
+      })
   }
 
   ngOnDestroy(): void {
     this.socketSub.unsubscribe()
-    this.socketSvc.onWebSocketclose()
-  }
-
-  toggle(event: MatSlideToggleChange) {
-    this.kitchenStatus = event.checked
-    this.clientSvc.postKitchenStatus(this.kitchenStatus)
-      .then(() => alert(`Kitchen is now ${this.kitchenStatus ? 'open' : 'closed'}`))
-      .catch(() => alert('Something went wrong'))
+    this.socketSvc.ws.close()
   }
 
   generateLink() {
-    const num = prompt('Enter Table ID:')
-    if (!!num)
-      this.clientSvc.getOrderLink(num)
-        .then(value => {
-          this.dialog.open(this.template)
-          this.getQR(value.token)
-          this.timestamp = Date.now()
-        })
+    const table = prompt('Enter Table ID:')
+    if (!!table) {
+      const num = table.trim()
+      if (!!num)
+        this.clientSvc.getOrderLink(num)
+          .then(value => {
+            this.dialog.open(this.qrTemplate)
+            this.getQR(value.token)
+            this.timestamp = Date.now()
+          })
+      else
+        alert('Please enter a valid Table ID')
+    }
   }
 
-  completeItem(order: KitchenOrder, item: string) {
-    if (!order.progress)
-      order.progress = 0
-    const count = order.orders.length
-    if (count === 1)
+  getProgress(order: KitchenOrder): number {
+    var count: number = 1
+    order.orders.filter(value => value.completed == true).forEach(() => count += 1)
+    return count / order.orders.length * 100
+
+  }
+
+  completeItem(order: KitchenOrder, item: Order) {
+    const progress = this.getProgress(order)
+    if (progress == 100)
       this.completeOrder(order.id)
-    order.progress += (1 / count) * 100
-    order.orders.filter(value => value.name === item).forEach(value => value.completed = true)
+    else
+      this.clientSvc.completeItem({
+        id: order.id,
+        item: item.id,
+        progress: this.getProgress(order)
+      })
+        .then(() => {
+          item.completed = true
+          order.progress = progress
+        })
+        .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+  }
+
+  editItem(order: string, item: Order) {
+    this.form = this.fb.group({
+      quantity: this.fb.control<number>(0, [Validators.required, Validators.min(1), Validators.max(item.quantity - 1)])
+    })
+
+    firstValueFrom(this.dialog.open(this.editTemplate).afterClosed())
+      .then(value => {
+        if (value) {
+          this.clientSvc.editItem({
+            id: order,
+            item: item.id,
+            old: item.quantity,
+            quantity: this.form.value.quantity
+          })
+            .then(() => {
+              alert(`${item.name} has been changed to ${this.form.value.quantity}`)
+              item.quantity = this.form.value.quantity
+            })
+            .catch(() => alert('Something went wrong'))
+        }
+      })
+  }
+
+  deleteItem(order: KitchenOrder, i: number) {
+    const item = order.orders.splice(i, 1)
+    const progress = this.getProgress(order)
+      this.clientSvc.deleteItem({
+        id: order.id,
+        item: item[0].id,
+        progress: progress,
+        old: item[0].quantity
+      })
+        .then(() => {
+          this.orders$ = this.clientSvc.getKitchenOrders()
+          alert(`${item[0].name} has been removed`)
+        })
+        .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   completeOrder(id: string) {
     this.clientSvc.completeOrder(id)
       .then(() => this.orders$ = this.clientSvc.getKitchenOrders())
+      .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+  }
+
+  deleteOrder(id: string) {
+    this.clientSvc.deleteOrder(id)
+      .then(() => this.orders$ = this.clientSvc.getKitchenOrders())
+      .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   getQR(link: string) {

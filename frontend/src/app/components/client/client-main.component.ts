@@ -27,7 +27,11 @@ export class ClientMainComponent implements OnInit, OnDestroy {
       })
       .then(() => this.clientSvc.getClient())
       .then(value => this.client = value)
-      .catch((err) => console.error(err))
+      .catch(err => {
+        console.error(err)
+        alert(`${err.status} error`)
+        this.router.navigate(['/'])
+      })
     
     this.client$ = this.clientSvc.client.asObservable().subscribe({
       next: value => this.client = value

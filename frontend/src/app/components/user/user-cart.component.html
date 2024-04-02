@@ -1,7 +1,7 @@
 <div class="main-container" *ngIf="initDone; else loading">
     <div *ngIf="cart.length > 0; else noCart">
 
-        <mat-stepper orientation="vertical" #stepper>
+        <mat-stepper orientation="vertical" (selectionChange)="selectionChange($event)" #stepper>
             <mat-step>
                 <ng-template matStepLabel>Confirm your order</ng-template>
                 <table mat-table [dataSource]="cart">
@@ -52,11 +52,11 @@
                     <tr mat-footer-row *matFooterRowDef="['total', 'totalAmt']"></tr>
                 </table>
 
-                <button mat-raised-button color="accent" (click)="getDetails()" matStepperNext><mat-icon>receipt_long</mat-icon>Order</button>
+                <button mat-raised-button color="accent" matStepperNext><mat-icon>receipt_long</mat-icon>Order</button>
             </mat-step>
 
-            <mat-step [stepControl]="form">
-                <ng-template matStepLabel>Wnter your personal details</ng-template>
+            <mat-step [stepControl]="form" label="details">
+                <ng-template matStepLabel>Enter your details</ng-template>
                 <ng-template matStepContent>
                     <form [formGroup]="form">
                         <p>
@@ -86,8 +86,18 @@
                                 }
                             </mat-form-field>
                         </p>
+                        <p>
+                            <mat-form-field>
+                                <mat-label>Comments</mat-label>
+                                <textarea matInput formControlName="comments" rows="3"></textarea>
+                                @if (form.controls['comments'].hasError('maxlength')) {
+                                <mat-error>Max 200 characters</mat-error>
+                                }
+                            </mat-form-field>
+                        </p>
                     </form>
-                    <button mat-raised-button color="warn" matStepperPrevious><mat-icon>expand_less</mat-icon>Back</button>
+                    <button mat-raised-button color="warn"
+                        matStepperPrevious><mat-icon>expand_less</mat-icon>Back</button>
                     <button mat-raised-button (click)="processOrder()"
                         [disabled]="form.invalid"><mat-icon>credit_card</mat-icon>Make
                         Payment</button>

@@ -15,6 +15,13 @@ public class Order {
     private String id;
     private String name;
     private Integer quantity;
+    private Boolean completed;
+
+    public Order(String id, String name, Integer quantity) {
+        this.id = id;
+        this.name = name;
+        this.quantity = quantity;
+    }
 
     public static Order[] fromJson(JsonArray array) {
         return array.stream()
@@ -33,6 +40,7 @@ public class Order {
                 .add("id", this.id)
                 .add("name", this.name)
                 .add("quantity", this.quantity)
+                .add("completed", this.completed != null ? this.completed : false)
                 .build();
     }
 }

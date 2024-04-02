@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ClientService } from '../../service/client.service';
 import { Chart, registerables } from 'chart.js';
 import { Stats } from '../../models';
+import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
 
 @Component({
   selector: 'app-client-dashboard',

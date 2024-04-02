@@ -21,3 +21,7 @@ mat-form-field {
     right: 5%;
     z-index: 10;
 }
+
+.description {
+    height: 15px;
+}

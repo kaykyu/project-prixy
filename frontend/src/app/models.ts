@@ -14,8 +14,7 @@ export interface Client {
     id: string
     email: string
     estName: string
-    svcCharge: number
-    gst: boolean
+    tax: Tax
     status: boolean
 }
 
@@ -64,11 +63,21 @@ export interface KitchenOrder {
     table: number
     date: Date
     orders: Order[]
+    comments: string
     progress: number
+    status: string
 }
 
 export interface Stats {
     sales: number
     top: {_id: string, name: string, quantity: number}[]
     hourly: { _id: number, count: number }[]
+}
+
+export interface OrderEdit {
+    id: string
+    item: string
+    progress?: number
+    old?: number
+    quantity?: number
 }

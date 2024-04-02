@@ -18,10 +18,11 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import jakarta.json.JsonObject;
-import vttp.project.app.backend.exception.CompleteOrderException;
+import vttp.project.app.backend.exception.SqlOrdersException;
 import vttp.project.app.backend.model.Client;
 import vttp.project.app.backend.model.Menu;
 import vttp.project.app.backend.model.MenuCategory;
+import vttp.project.app.backend.model.OrderEdit;
 import vttp.project.app.backend.service.ClientService;
 
 @RestController
@@ -43,6 +44,7 @@ public class ClientController {
 
     @PutMapping(path = "/email")
     public ResponseEntity<String> putEmail(@RequestHeader("Authorization") String token, @RequestBody String email) {
+        
         JsonObject result = clientSvc.putEmail(token, email);
         if (result.isEmpty())
             return ResponseEntity.ok(email);
@@ -99,23 +101,55 @@ public class ClientController {
         return ResponseEntity.ok(clientSvc.getOrderLink(token, table).toString());
     }
 
-    @PostMapping(path = "/complete")
-    public ResponseEntity<Void> completeOrder(@RequestBody String id) {
+    @PostMapping(path = "/order/item")
+    public ResponseEntity<String> completeItem(@RequestBody OrderEdit edit) {
+        try {
+            clientSvc.completeItem(edit);
+            return ResponseEntity.ok().build();
+
+        } catch (SqlOrdersException e) {
+            return ResponseEntity.internalServerError().body(e.toJson().toString());
+        }
+    }
+
+    @PutMapping(path = "/order/item")
+    public ResponseEntity<Void> putItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
+        if (clientSvc.editItem(token, edit))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.notFound().build();
+    }
+
+    @PostMapping(path = "/order/item/delete")
+    public ResponseEntity<String> deleteItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
+        try {
+            if (clientSvc.deleteItem(token, edit))
+                return ResponseEntity.ok().build();
+            return ResponseEntity.notFound().build();
+        } catch (SqlOrdersException e) {
+            return ResponseEntity.internalServerError().body(e.toJson().toString());
+        }
+    }
+
+    @PostMapping(path = "/order/complete")
+    public ResponseEntity<String> completeOrder(@RequestBody String id) {
         try {
             if (clientSvc.completeOrder(id))
                 return ResponseEntity.ok().build();
             return ResponseEntity.notFound().build();
-        } catch (CompleteOrderException e) {
-            return ResponseEntity.internalServerError().build();
+        } catch (SqlOrdersException e) {
+            return ResponseEntity.internalServerError().body(e.toJson().toString());
         }
     }
 
-    @PostMapping(path = "/kitchen/status")
-    public ResponseEntity<Void> postKitchenStatus(@RequestHeader("Authorization") String token,
-            @RequestBody Boolean status) {
-        if (clientSvc.toggleKitchenStatus(token, status))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.internalServerError().build();
+    @PostMapping(path = "/order/delete")
+    public ResponseEntity<String> deleteOrder(@RequestBody String id) {
+        try {
+            if (clientSvc.removeOrder(id))
+                return ResponseEntity.ok().build();
+            return ResponseEntity.notFound().build();
+        } catch (SqlOrdersException e) {
+            return ResponseEntity.internalServerError().body(e.toJson().toString());
+        }
     }
 
     @GetMapping(path = "/stats")

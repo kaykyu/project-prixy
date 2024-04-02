@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Auth, Client, KitchenOrder, Menu, Stats } from '../models';
+import { Auth, Client, KitchenOrder, Menu, OrderEdit, Stats } from '../models';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
 
 @Injectable({
@@ -38,7 +38,7 @@ export class ClientService {
     return firstValueFrom(this.http.put<string>('api/client/email', email, { headers: this.headers() }))
   }
 
-  putClient(client: Client): Promise<Client> {
+  putClient(client: any): Promise<Client> {
     return firstValueFrom(this.http.put<Client>('/api/client', client, { headers: this.headers() }))
   }
 
@@ -66,12 +66,24 @@ export class ClientService {
     return this.http.get<KitchenOrder[]>('/api/client/kitchen', { headers: this.headers() })
   }
 
-  completeOrder(id: string): Promise<void> {
-    return firstValueFrom(this.http.post<void>('/api/client/complete', id, { headers: this.headers() }))
+  completeItem(edit: OrderEdit): Promise<any> {
+    return firstValueFrom(this.http.post('/api/client/order/item', edit, { headers: this.headers() }))
   }
 
-  postKitchenStatus(status: boolean): Promise<void> {
-    return firstValueFrom(this.http.post<void>('/api/client/kitchen/status', status, { headers: this.headers() }))
+  editItem(edit: OrderEdit): Promise<void> {
+    return firstValueFrom(this.http.put<void>('/api/client/order/item', edit, { headers: this.headers() }))
+  }
+
+  deleteItem(edit: OrderEdit): Promise<any> {
+    return firstValueFrom(this.http.post('/api/client/order/item/delete', edit, { headers: this.headers() }))
+  }
+
+  completeOrder(id: string): Promise<any> {
+    return firstValueFrom(this.http.post('/api/client/order/complete', id, { headers: this.headers() }))
+  }
+
+  deleteOrder(id: string): Promise<any> {
+    return firstValueFrom(this.http.post('/api/client/order/delete', id, { headers: this.headers() }))
   }
 
   getOrderLink(table: string): Promise<any> {

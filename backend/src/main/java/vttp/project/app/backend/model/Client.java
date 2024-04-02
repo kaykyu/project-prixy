@@ -14,18 +14,14 @@ public class Client {
     private String id;
     private String email;
     private String estName;
-    private Integer svcCharge;
-    private Boolean gst;
-    private Boolean status;
+    private Tax tax;
 
     public JsonObject toJson() {
         return Json.createObjectBuilder()
                 .add("id", this.id)
                 .add("email", this.email)
                 .add("estName", this.estName)
-                .add("svcCharge", this.svcCharge != null ? this.svcCharge : 0)
-                .add("gst", this.gst != null ? this.gst : false)
-                .add("status", this.status)
+                .add("tax", this.tax.toJson())
                 .build();
     }
 }

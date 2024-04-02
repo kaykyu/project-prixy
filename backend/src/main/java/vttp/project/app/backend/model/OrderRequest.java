@@ -23,22 +23,19 @@ public class OrderRequest {
     private String id;
     private String name;
     private String email;
-    private String receipt;
+    private String comments;
+    private String paymentId;
 
-    public OrderRequest(String email, String receipt) {
-        this.email = email;
-        this.receipt = receipt;
-    }
-
-    public OrderRequest(Order[] cart, Double amount, String name, String email) {
+    public OrderRequest(Order[] cart, Double amount, String name, String email, String comments) {
         this.cart = cart;
         this.amount = amount;
         this.id = UUID.randomUUID().toString().substring(0, 8);
         this.name = name;
         this.email = email;
+        this.comments = comments;
     }
 
-    public OrderRequest(String client, String table, Order[] cart, Double amount, String id, String name, String email) {
+    public OrderRequest(String client, String table, Order[] cart, Double amount, String id, String name, String email, String comments) {
         this.client = client;
         this.table = table;
         this.cart = cart;
@@ -46,6 +43,7 @@ public class OrderRequest {
         this.id = id;
         this.name = name;
         this.email = email;
+        this.comments = comments;
     }
 
     public Map<String, String> toMetadata() {
@@ -62,6 +60,7 @@ public class OrderRequest {
         map.put("id", this.id);
         map.put("name", this.name);
         map.put("email", this.email);
+        map.put("comments", this.comments);
 
         return map;
     }
@@ -74,11 +73,7 @@ public class OrderRequest {
                 Double.parseDouble(map.get("amount")),
                 map.get("id"),
                 map.get("name"),
-                map.get("email"));
-    }
-
-    public Long getLongAmount() {
-        Double amt = this.amount * 100;
-        return amt.longValue();
+                map.get("email"),
+                map.get("comments"));
     }
 }

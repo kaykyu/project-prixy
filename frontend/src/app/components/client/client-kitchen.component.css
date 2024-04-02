@@ -2,20 +2,46 @@ mat-card.orders {
     width: 350px;
 }
 
+.orders {
+    white-space: nowrap;
+    overflow-x: auto;
+    max-height: 90%;
+    transform: rotateX(180deg);
+
+}
+
+.orders::-webkit-scrollbar {
+    height: 3px;
+    background-color: #fff8f0;
+    position: absolute;
+    top: 0;
+}
+
+.orders::-webkit-scrollbar-thumb {
+    background-color: #5555ff;
+}
+
+::-webkit-scrollbar-track {
+    background: #fff8f0;
+    border-radius: 3px;
+}
+
 .card-container {
     display: inline-block;
     padding: 10px;
+    vertical-align: bottom;
 }
 
 .header {
     padding: 10px;
     text-align: center;
-    display: flex;
+    margin: auto;
+    height: 100px;
+    align-content: center;
 }
 
-.inner {
-    width: 50%;
-    margin: auto;
+.divider {
+    padding: 5px;
 }
 
 .bottom {
@@ -25,4 +51,16 @@ mat-card.orders {
 .print {
     margin: auto;
     text-align: center;
+}
+
+.completed {
+    color: lightgray;
+}
+
+.comment {
+    padding-top: 10px;
+}
+
+.comments {
+    padding: 10px;
 }

@@ -6,37 +6,32 @@ import { Subject } from 'rxjs';
 })
 export class SocketService {
 
-  private ws!: WebSocket
+  ws!: WebSocket
 
   socket: Subject<void> = new Subject
 
-  onWebSocketOpen() {
-    console.log('Connected to Websocket')
-  }
-
-  onWebSocketMessage(event: MessageEvent<any>) {
+  onMessage(_event: MessageEvent<any>) {
     console.log('Received from Websocket')
     this.socket.next()
   }
 
-  onWebSocketclose() {
-    console.log('Disconnected from Websocket')
-    this.ws.close()
-  }
+  async onConnect(client: string) {
+    console.log("Connecting...")
+    this.ws = new WebSocket(`wss://${window.location.host}/websocket`)
 
-  async onConnect(id: string): Promise<any> {
-    return new Promise(resolve => {
-      console.log("Connecting...")
-      this.ws = new WebSocket(`wss://${window.location.host}/websocket/${id}`)
-      this.ws.onopen = this.onWebSocketOpen.bind(this)
-      this.ws.onmessage = this.onWebSocketMessage.bind(this)
-      this.onWebSocketclose.bind(this)
-      resolve(this.ws)
-    })
-  }
+    this.ws.onmessage = this.onMessage.bind(this)
+    this.ws.onerror = (error) => console.error(error)
 
-  onSend() {
-    console.log('Pinging Websocket')
-    this.ws.send('');
+    this.ws.onopen = (_event) => {
+      console.log('Connected to Websocket')
+      const msg = {client: client}
+      this.ws.send(JSON.stringify(msg))
+    }
+
+    this.ws.onclose = (event) => {
+      console.log('Disconnected from Websocket', event.reason)
+      if (window.location.hash.endsWith('kitchen'))
+        this.onConnect(client)
+    }
   }
 }

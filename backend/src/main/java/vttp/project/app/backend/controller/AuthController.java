@@ -40,8 +40,10 @@ public class AuthController {
 
     @PostMapping(path = "/signup")
     public ResponseEntity<String> signup(@RequestBody Login login) {
+
         login.setPw(pwEncoder.encode(login.getPw()));
         JsonObject result = authSvc.signup(login);
+
         if (result.isEmpty())
             return ResponseEntity.status(HttpStatusCode.valueOf(201)).body(result.toString());
         return ResponseEntity.badRequest().body(result.toString());
@@ -53,6 +55,7 @@ public class AuthController {
             Authentication auth = authManager
                     .authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPw()));
             return ResponseEntity.ok(tokenSvc.generateToken(auth).toString());
+            
         } catch (AuthenticationException e) {
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                     .body(Json.createObjectBuilder().add("error", e.getMessage()).build().toString());

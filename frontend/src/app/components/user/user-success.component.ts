@@ -14,7 +14,6 @@ export class UserSuccessComponent implements OnInit {
 
   private ar: ActivatedRoute = inject(ActivatedRoute)
   private userSvc: UserService = inject(UserService)
-  private socketSvc: SocketService = inject(SocketService)
 
   @Input() user!: User
   id: string = ''
@@ -23,11 +22,8 @@ export class UserSuccessComponent implements OnInit {
 
   ngOnInit(): void {
     this.id = this.ar.snapshot.params['id']
-    localStorage.removeItem(this.user.client)
+    localStorage.removeItem(this.user.sub)
     this.order$ = this.userSvc.getOrders(this.id)
-    this.socketSvc.onConnect(this.user.sub)
-      .then((value) => value.onopen = () => this.socketSvc.onSend())
-      .catch((err) => console.error(err))
   }
 
   sendReceipt() {

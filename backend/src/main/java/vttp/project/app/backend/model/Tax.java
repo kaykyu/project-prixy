@@ -11,12 +11,12 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Tax {
     
-    private Integer svcCharge;
+    private Integer svc;
     private Boolean gst;
 
     public JsonObject toJson() {
         return Json.createObjectBuilder()
-                .add("svc", this.svcCharge)
+                .add("svc", this.svc)
                 .add("gst", this.gst)
                 .build();
     }

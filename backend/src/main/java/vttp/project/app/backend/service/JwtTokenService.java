@@ -26,6 +26,7 @@ public class JwtTokenService {
     private ClientRepository clientRepo;
 
     public JsonObject generateToken(Authentication auth) {
+
         UserPrincipal client = (UserPrincipal) auth.getPrincipal();
         String id = clientRepo.getClientId(client.getUsername());
         Instant now = Instant.now();
@@ -41,6 +42,7 @@ public class JwtTokenService {
     }
 
     public JsonObject generateOrderLink(String client, String table) {
+        
         Instant now = Instant.now();
         return Json.createObjectBuilder()
                 .add("token", JWT.create()

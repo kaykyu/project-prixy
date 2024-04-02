@@ -19,7 +19,7 @@
                         <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
                     </mat-card-header>
                     <img mat-card-image [src]="m.image" width="300" height="300">
-                    <mat-card-content [matTooltip]="m.description" [matTooltipDisabled]="m.description.length <= 30">
+                    <mat-card-content class="description" [matTooltip]="m.description" [matTooltipDisabled]="m.description.length <= 30">
                         <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
                     </mat-card-content>
                     <mat-card-actions align="end">
@@ -40,8 +40,8 @@
                         <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
                     </mat-card-header>
                     <img mat-card-image [src]="m.image" width="300" height="300">
-                    <mat-card-content>
-                        <p>{{m.description}}</p>
+                    <mat-card-content [matTooltip]="m.description" [matTooltipDisabled]="m.description.length <= 30">
+                        <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
                     </mat-card-content>
                     <mat-card-actions align="end">
                         <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
@@ -61,7 +61,7 @@
 
 <ng-template #noMenu>
     <div class="center">
-        You have no items added to your menu.
+        <h6>You have no items added to your menu.</h6>
     </div>
 </ng-template>
 

@@ -26,6 +26,7 @@ public class AuthService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+
         Login user = authRepo.getLogin(username);
         if (user.getPw() == null)
             throw new UsernameNotFoundException("Email does not exist!");
@@ -33,6 +34,7 @@ public class AuthService implements UserDetailsService {
     }
 
     public JsonObject signup(Login login) {
+        
         if (authRepo.userExist(login.getEmail()))
             return Json.createObjectBuilder().add("error", "Email already exists.").build();
         authRepo.signup(login);
