@@ -50,7 +50,6 @@ create table orders (
 create table order_items (
     id int auto_increment,
     item_id char(8) not null,
-    item_name varchar(128),
     quantity int,
     order_id char(8) not null,
     completed boolean not null default false,

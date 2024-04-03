@@ -62,8 +62,8 @@ public class Queries {
             """;
             
     public static final String SQL_SAVE_ORDER_ITEMS = """
-            insert into order_items(item_id, item_name, quantity, order_id)
-            value (?, ?, ?, ?)
+            insert into order_items(item_id, quantity, order_id)
+            value (?, ?, ?)
             """;
 
     public static final String SQL_GET_RECEIPT = """
@@ -73,8 +73,9 @@ public class Queries {
             """;
 
     public static final String SQL_GET_ORDER_ITEMS = """
-            select item_id, item_name, quantity, completed from order_items
-            where order_id = ?
+            select menu.id, menu.name, order_items.quantity, order_items.completed from order_items 
+            inner join menu on menu.id = order_items.item_id
+            where order_id = ?;
             """;
 
     public static final String SQL_GET_ORDER_BY_CLIENT = """
@@ -106,8 +107,11 @@ public class Queries {
             where order_id = ? and item_id = ?
             """;                      
                        
-    public static final String SQL_GET_ORDER_BY_ID = """
-            select * from orders where id = ?
+    public static final String SQL_GET_COMPLETED_ORDER = """
+            select orders.id, orders.client_id, orders.ordered_date, orders.table_id, orders.email, orders.name, orders.comments, orders.payment_id, orders.amount, 
+            stripe_charge.id as charge_id, stripe_charge.receipt from orders 
+            inner join stripe_charge on orders.payment_id = stripe_charge.payment_id 
+            where orders.id = ?
             """;
             
     public static final String SQL_GET_CHARGE_BY_PAYMENT = """
@@ -126,8 +130,8 @@ public class Queries {
             delete from order_items where order_id = ?
                     """;
                       
-    public static final String SQL_GET_MENU_PRICE_BY_ID = """
-            select id, price from menu where id = ?
+    public static final String SQL_GET_MENU_BY_ID = """
+            select * from menu where id = ?
             """;
             
     public static final String SQL_GET_ORDER_PROGRESS = """

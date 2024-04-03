@@ -50,6 +50,7 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
           this.menu$ = this.clientSvc.getMenu()
           this.clientSvc.getMenuCategory()
             .then(value => this.categories = value)
+          this.clientSvc.openSnackBar(`${name} successfully deleted`)
         })
         .catch(() => alert(`Please make sure you have no pending orders for ${name} before deleting.`))
   }

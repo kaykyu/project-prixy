@@ -1,7 +1,10 @@
 <div class="main-container">
     <div *ngIf="order$ | async as orders; else error">
         <h2>Your order has been sent to the kitchen.</h2>
-        <h4>Order ID: #{{id | uppercase}}</h4>
+        <h4>
+            Order ID: #{{id | uppercase}} 
+            <span><button mat-icon-button [cdkCopyToClipboard]="id" (click)="copied()"><mat-icon>content_copy</mat-icon></button></span>
+        </h4>
 
         <div class="main-container">
             <table mat-table [dataSource]="orders">
@@ -19,7 +22,7 @@
                     <td mat-footer-cell *matFooterCellDef colspan="2">
                         <button mat-raised-button color="accent" (click)="sendReceipt()"><mat-icon>mail</mat-icon>Send
                             receipt to Email</button>
-                        <a class="button" mat-raised-button href="https://t.me/PrixywebBot"><mat-icon>message</mat-icon>Check order progress</a>
+                        <a class="link" mat-raised-button href="https://t.me/PrixywebBot"><mat-icon>message</mat-icon>Check order progress</a>
                     </td>
                 </ng-container>
 

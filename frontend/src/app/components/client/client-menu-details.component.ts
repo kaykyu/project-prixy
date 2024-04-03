@@ -72,11 +72,11 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
     if (!this.add) {
       formData.set("id", this.menu.id)
       this.clientSvc.putMenu(formData)
-        .then(() => this.success())
+        .then(() => this.success(this.form.value.name))
         .catch(() => alert('Something went wrong.'))
     } else
       this.clientSvc.postMenu(formData)
-        .then(() => this.success())
+        .then(() => this.success(this.form.value.name))
         .catch(() => alert('Something went wrong.'))
   }
 
@@ -91,8 +91,8 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
     this.croppedImage = null
   }
 
-  success() {
+  success(name: string) {
     this.dialogRef.close(true)
-    alert(`Menu successfully ${this.add ? 'added' : 'edited'}`)
+    this.clientSvc.openSnackBar(`${name} successfully ${this.add ? 'added' : 'edited'}`)
   }
 }

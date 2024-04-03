@@ -28,6 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     .getString("client");
             logger.info("%s connected".formatted(id));
             clients.put(session, id);
+            
         } catch (Exception e) {
             try {
                 session.close(CloseStatus.NOT_ACCEPTABLE);
@@ -58,6 +59,6 @@ public class WebSocketHandler extends TextWebSocketHandler {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-        });        
+        });
     }
 }

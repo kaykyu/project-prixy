@@ -1,9 +1,9 @@
 package vttp.project.app.backend.service;
 
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.oauth2.jwt.Jwt;
-import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -35,9 +35,6 @@ public class UserService {
     private EmailService emailSvc;
 
     @Autowired
-    private JwtDecoder decoder;
-
-    @Autowired
     private WebSocketHandler socket;
 
     @Value("${webapp.host.url}")
@@ -62,13 +59,10 @@ public class UserService {
         return tax.toJson();
     }
 
-    public JsonObject newOrder(OrderRequest request, String token) throws StripeException {
+    public JsonObject newOrder(OrderRequest request) throws StripeException {
 
-        String baseUrl = "%s/%s/%s".formatted(hostUrl, "order", token);
-        Jwt jwt = decoder.decode(token);
-        request.setClient(jwt.getSubject());
-        request.setTable(jwt.getClaimAsString("table"));
-
+        request.setId(UUID.randomUUID().toString().substring(0, 8));
+        String baseUrl = "%s/order/%s".formatted(hostUrl, request.getToken());
         return Json.createObjectBuilder()
                 .add("id", stripeSvc.createPaymentIntent(
                         request,

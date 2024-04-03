@@ -1,6 +1,12 @@
+.parent {
+    width: 100%;
+    display: flex;
+    flex-wrap: wrap;
+}
+
 mat-card.menu {
     width: 300px;
-    margin: 10px;
+    margin: auto;
 }
 
 mat-form-field {
@@ -9,10 +15,14 @@ mat-form-field {
 
 .search {
     padding: 10px;
+    height: 70px;
 }
 
 .menu {
-    display: inline-block; 
+    width: 300px;
+    margin: auto;
+    margin-top: 10px;
+    margin-bottom: 10px;
 }
 
 .add-button {

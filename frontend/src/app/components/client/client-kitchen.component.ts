@@ -40,7 +40,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     this.socketSvc.onConnect(this.client.id)
       .then(() => {
         this.socketSub = this.socketSvc.socket.asObservable().subscribe({
-          next: () => this.orders$ = this.clientSvc.getKitchenOrders()
+          next: () => this.newOrder()
         })
       })
   }
@@ -48,6 +48,14 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.socketSub.unsubscribe()
     this.socketSvc.ws.close()
+  }
+
+  newOrder() {
+    this.orders$ = this.clientSvc.getKitchenOrders()
+    const audio = new Audio
+    audio.src = '../../../assets/audio/ring.mp3'
+    audio.play()
+    this.clientSvc.openSnackBar('Order up!')
   }
 
   generateLink() {
@@ -66,22 +74,20 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     }
   }
 
-  getProgress(order: KitchenOrder): number {
-    var count: number = 1
+  getProgress(order: KitchenOrder, count: number): number {
     order.orders.filter(value => value.completed == true).forEach(() => count += 1)
     return count / order.orders.length * 100
-
   }
 
   completeItem(order: KitchenOrder, item: Order) {
-    const progress = this.getProgress(order)
+    const progress = this.getProgress(order, 1)
     if (progress == 100)
       this.completeOrder(order.id)
     else
       this.clientSvc.completeItem({
         id: order.id,
         item: item.id,
-        progress: this.getProgress(order)
+        progress: progress
       })
         .then(() => {
           item.completed = true
@@ -115,12 +121,13 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
   deleteItem(order: KitchenOrder, i: number) {
     const item = order.orders.splice(i, 1)
-    const progress = this.getProgress(order)
+    const progress = this.getProgress(order, 0)
       this.clientSvc.deleteItem({
         id: order.id,
         item: item[0].id,
         progress: progress,
-        old: item[0].quantity
+        old: item[0].quantity,
+        quantity: 0
       })
         .then(() => {
           this.orders$ = this.clientSvc.getKitchenOrders()

@@ -1,10 +1,14 @@
 package vttp.project.app.backend.service;
 
 import java.io.IOException;
+import java.io.StringWriter;
+import java.util.List;
 import java.util.UUID;
 
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
+import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
@@ -21,11 +25,9 @@ import vttp.project.app.backend.model.Client;
 import vttp.project.app.backend.model.CompletedOrder;
 import vttp.project.app.backend.model.Menu;
 import vttp.project.app.backend.model.OrderEdit;
-import vttp.project.app.backend.model.Tax;
 import vttp.project.app.backend.repository.ClientRepository;
 import vttp.project.app.backend.repository.S3Repository;
 import vttp.project.app.backend.repository.StatsRepository;
-import vttp.project.app.backend.repository.UserRepository;
 
 @Service
 public class ClientService {
@@ -47,12 +49,6 @@ public class ClientService {
 
     @Autowired
     private StripeService stripeSvc;
-
-    @Autowired
-    private UserRepository userRepo;
-
-    @Value("${gst}")
-    private Integer gst;
 
     public String getId(String token) {
         return decoder.decode(token.split(" ")[1]).getSubject();
@@ -118,7 +114,7 @@ public class ClientService {
 
     public JsonArray getKitchenOrders(String token) {
         return Json.createArrayBuilder(clientRepo.getKitchenOrders(getId(token)).stream()
-                .map(value -> value.toJson())
+                .map(doc -> doc.toJson())
                 .toList())
                 .build();
     }
@@ -137,17 +133,19 @@ public class ClientService {
 
     public Boolean editItem(String token, OrderEdit edit) {
 
-        Double amount = clientRepo.getPrice(edit.getItem()) * (edit.getOld() - edit.getQuantity());
-        if (processRefund(getId(token), edit.getId(), amount))
+        try {
+            stripeSvc.createRefund(getId(token), edit);
             return clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity());
-        return false;
+
+        } catch (StripeException e) {
+            return false;
+        }
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
     public Boolean deleteItem(String token, OrderEdit edit) throws SqlOrdersException {
-
-        Double amount = clientRepo.getPrice(edit.getItem()) * edit.getOld();
-        if (processRefund(getId(token), edit.getId(), amount)) {
+        try {
+            stripeSvc.createRefund(getId(token), edit);
             if (edit.getProgress() == 100) {
                 clientRepo.removeOrderItem(edit.getId(), edit.getItem());
                 completeOrder(edit.getId());
@@ -158,8 +156,10 @@ public class ClientService {
                 return true;
             else
                 throw new SqlOrdersException("Failed to update removed order item");
+
+        } catch (StripeException e) {
+            return false;
         }
-        return false;
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
@@ -169,10 +169,10 @@ public class ClientService {
         if (order == null)
             return false;
 
-        order = clientRepo.getCharges(order);
         order = clientRepo.getOrderItems(order);
-    
-        if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id) && clientRepo.removeCharge(order.getCharge())))
+
+        if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)
+                && clientRepo.removeCharge(order.getCharge())))
             throw new SqlOrdersException("Failed to update completed order");
 
         statsRepo.saveCompletedOrder(order);
@@ -182,49 +182,62 @@ public class ClientService {
     @Transactional(rollbackFor = SqlOrdersException.class)
     public Boolean removeOrder(String id) throws SqlOrdersException {
 
-        if (processRefund(id)) {
-            if (!(clientRepo.removeCharge(clientRepo.getChargeId(id)) && clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)))
+        try {
+            String charge = stripeSvc.createRefund(id);
+            if (!(clientRepo.removeCharge(charge) && clientRepo.removeOrderItems(id)
+                    && clientRepo.removeOrder(id)))
                 throw new SqlOrdersException("Failed to update removed order");
             return true;
+
+        } catch (StripeException e) {
+            return false;
         }
-        return false;
     }
 
     public String getStats(String token, Integer q) {
         try {
             return statsRepo.getAll(getId(token), q).toJson();
         } catch (Exception e) {
+            e.printStackTrace();
             return null;
         }
     }
 
-    public Boolean processRefund(String client, String order, Double amount) {
-        try {
-            stripeSvc.createRefund(clientRepo.getChargeId(order), applyTax(amount, client));
-            return true;
-        } catch (StripeException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+    public JsonObject createCSV(String token, Integer q) throws IOException {
+        StringWriter sw = new StringWriter();
+        List<Document> docs = statsRepo.getRecords(getId(token), q);
 
-    public Boolean processRefund(String id) {
-        try {
-            stripeSvc.createRefund(clientRepo.getChargeId(id));
-            return true;
-        } catch (StripeException e) {
-            e.printStackTrace();
-            return false;
-        }
-    }
+        CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
+                .setHeader("id", "client_id", "date", "table", "email", "name", "comments", "payment_id", "charge_id",
+                        "receipt", "amount", "orders")
+                .build();
 
-    public Double applyTax(Double amount, String id) {
-        
-        Tax tax = userRepo.getTaxes(id);
-        if (tax.getSvc() != 0)
-            amount *= 100 + tax.getSvc();
-        if (tax.getGst())
-            amount *= 100 + gst;
-        return amount / 10000;
+        try (final CSVPrinter printer = new CSVPrinter(sw, csvFormat)) {
+            docs.forEach(doc -> {
+                JsonArray orders = Json.createArrayBuilder(doc.getList("orders", Document.class).stream()
+                        .map(order -> Json.createObjectBuilder()
+                                .add(order.getString("name"), order.getInteger("quantity")).build())
+                        .toList())
+                        .build();
+                try {
+                    printer.printRecord(
+                            doc.getString("id"),
+                            doc.getString("client_id"),
+                            doc.getDate("ordered_date").toString(),
+                            doc.getString("table_id"),
+                            doc.getString("email"),
+                            doc.getString("name"),
+                            doc.getString("comments"),
+                            doc.getString("payment_id"),
+                            doc.getString("charge_id"),
+                            doc.getString("receipt"),
+                            doc.getDouble("amount"),
+                            orders.toString());
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
+        return Json.createObjectBuilder().add("csv", sw.toString()).build();
     }
 }

@@ -1,7 +1,5 @@
 package vttp.project.app.backend.controller;
 
-import java.io.StringReader;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,7 +16,6 @@ import com.stripe.exception.StripeException;
 import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
-import vttp.project.app.backend.model.Order;
 import vttp.project.app.backend.model.OrderRequest;
 import vttp.project.app.backend.service.UserService;
 
@@ -49,18 +46,10 @@ public class UserController {
     }
 
     @PostMapping(path = "/order")
-    public ResponseEntity<String> postOrder(@RequestBody String payload) {
-
-        JsonObject jObject = Json.createReader(new StringReader(payload)).readObject();
-        OrderRequest request = new OrderRequest(
-                Order.fromJson(jObject.getJsonArray("cart")),
-                Double.parseDouble(jObject.getString("amount")),
-                jObject.getString("name"),
-                jObject.getString("email"),
-                jObject.getString("comments"));
+    public ResponseEntity<String> postOrder(@RequestBody OrderRequest request) {
         try {
             return ResponseEntity.ok()
-                    .body(userSvc.newOrder(request, jObject.getString("token")).toString());
+                    .body(userSvc.newOrder(request).toString());
 
         } catch (StripeException e) {
             return ResponseEntity.internalServerError()
@@ -91,7 +80,7 @@ public class UserController {
 
     @GetMapping(path = "/orders/{id}")
     public ResponseEntity<String> getOrders(@PathVariable String id) {
-        
+
         JsonArray result = userSvc.getOrders(id);
         if (result.size() < 1)
             return ResponseEntity.notFound().build();

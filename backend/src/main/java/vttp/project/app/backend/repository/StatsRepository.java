@@ -1,14 +1,15 @@
 package vttp.project.app.backend.repository;
 
+import java.time.ZoneId;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
-import java.util.TimeZone;
 
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.domain.Sort.Direction;
+import org.springframework.data.mongodb.MongoExpression;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.data.mongodb.core.aggregation.Aggregation;
 import org.springframework.data.mongodb.core.aggregation.DateOperators;
@@ -19,6 +20,7 @@ import org.springframework.data.mongodb.core.aggregation.ProjectionOperation;
 import org.springframework.data.mongodb.core.aggregation.SortOperation;
 import org.springframework.data.mongodb.core.aggregation.UnwindOperation;
 import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Repository;
 
 import vttp.project.app.backend.model.CompletedOrder;
@@ -57,6 +59,16 @@ public class StatsRepository {
         return Aggregation.match(filter(id, days));
     }
 
+    public Document getRange(Criteria criteria, Direction sort) {
+        Query query = Query.query(criteria);
+        query.with(Sort.by(sort, "ordered_date"))
+                .limit(1)
+                .fields().include("ordered_date")
+                .project(MongoExpression.create("$dateToString: {date: '$ordered_date', timezone: 'Asia/Singapore', format: '%d %b %Y'}"))
+                .as("date");
+        return mongoTemplate.findOne(query, Document.class, COLL);
+    }
+
     public Document totalSales(MatchOperation matchOps) {
 
         GroupOperation groupOps = Aggregation.group().sum("amount").as("sales");
@@ -80,7 +92,9 @@ public class StatsRepository {
     public List<Document> countByHour(MatchOperation matchOps) {
 
         ProjectionOperation projectOps = Aggregation.project()
-                .and(DateOperators.zonedDateOf("ordered_date", DateOperators.Timezone.fromZone(TimeZone.getDefault())).hour())
+                .and(DateOperators
+                        .zonedDateOf("ordered_date", DateOperators.Timezone.fromZone(ZoneId.of("Asia/Singapore")))
+                        .hour())
                 .as("hour")
                 .andExclude("_id");
 
@@ -94,9 +108,22 @@ public class StatsRepository {
 
     public Document getAll(String id, Integer days) throws Exception {
 
+        Criteria criteria = filter(id, days);
         MatchOperation matchOps = matchFilter(id, days);
         return totalSales(matchOps)
                 .append("top", topSelling(matchOps))
-                .append("hourly", countByHour(matchOps));
+                .append("hourly", countByHour(matchOps))
+                .append("first", getRange(criteria, Direction.ASC).getString("date"))
+                .append("last", getRange(criteria, Direction.DESC).getString("date"));
+    }
+
+    public Document getEmail(String payment) {
+        Query query = Query.query(Criteria.where("payment_id").is(payment));
+        return mongoTemplate.findOne(query, Document.class, COLL);
+    }
+
+    public List<Document> getRecords(String id, Integer days) {
+        Query query = Query.query(filter(id, days));
+        return mongoTemplate.find(query, Document.class, COLL);
     }
 }

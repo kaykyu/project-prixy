@@ -102,7 +102,7 @@ export class ClientAccountComponent implements OnInit {
     }
     this.authSvc.putPassword(change)
       .then(() => {
-        alert('Password changed successfully.')
+        this.clientSvc.openSnackBar('Password changed successfully')
         this.pwForm.reset()
         this.dialog.closeAll()
       })

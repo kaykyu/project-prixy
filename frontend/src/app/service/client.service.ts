@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Auth, Client, KitchenOrder, Menu, OrderEdit, Stats } from '../models';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +10,7 @@ import { Observable, Subject, firstValueFrom } from 'rxjs';
 export class ClientService {
 
   private http: HttpClient = inject(HttpClient)
+  private snackBar: MatSnackBar = inject(MatSnackBar)
 
   client: Subject<Client> = new Subject<Client>()
 
@@ -21,6 +23,8 @@ export class ClientService {
         const auth: Auth = JSON.parse(atob(token.split('.')[1]))
         if (auth.exp < Date.now() / 1000)
           reject('Token has expired.')
+        else if (auth.iss !== 'Prixy')
+          reject('Token is invalid')
         resolve(auth)
       }
     })
@@ -28,6 +32,10 @@ export class ClientService {
 
   headers(): HttpHeaders {
     return new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('prixyToken')}`)
+  }
+
+  openSnackBar(message: string) {
+    this.snackBar.open(message, undefined, { duration: 1000 })
   }
 
   getClient(): Promise<Client> {
@@ -94,6 +102,11 @@ export class ClientService {
   getStats(q: number): Promise<Stats> {
     const param = new HttpParams().set('q', q)
     return firstValueFrom(this.http.get<Stats>('/api/client/stats', { headers: this.headers(), params: param }))
+  }
+
+  getRecords(q: number): Promise<any> {
+    const param = new HttpParams().set('q', q)
+    return firstValueFrom(this.http.get<any>('/api/client/records', { headers: this.headers(), params: param }))
   }
 }
 

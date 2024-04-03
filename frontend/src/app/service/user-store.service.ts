@@ -17,6 +17,10 @@ export class UserStoreService extends ComponentStore<UserSlice> implements OnSto
     super(INIT_SLICE)
   }
 
+  snackBar(message: string) {
+    this.userSvc.openSnackBar(message)
+  }
+
   ngrxOnStoreInit(): void {
     this.userSvc.checkLink(this.ar.snapshot.params['token'])
       .then(value => {
@@ -39,6 +43,7 @@ export class UserStoreService extends ComponentStore<UserSlice> implements OnSto
         }
       })
       .then(() => this.linkMenuToOrders(this.getOrders))
+      .catch(err => alert(err))
   }
 
   setUser(user: User) {
@@ -123,9 +128,10 @@ export class UserStoreService extends ComponentStore<UserSlice> implements OnSto
 
 const INIT_SLICE = {
   user: {
+    iss: '',
     sub: '',
     client: '',
-    table: 0,
+    table: '',
     exp: 0
   },
   menu: [],

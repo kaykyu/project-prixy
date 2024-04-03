@@ -1,8 +1,7 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, Input, OnInit } from '@angular/core';
 import { ClientService } from '../../service/client.service';
 import { Chart, registerables } from 'chart.js';
-import { Stats } from '../../models';
-import { consumerPollProducersForChange } from '@angular/core/primitives/signals';
+import { Client, Stats } from '../../models';
 
 @Component({
   selector: 'app-client-dashboard',
@@ -15,6 +14,7 @@ export class ClientDashboardComponent implements OnInit {
     Chart.register(...registerables)
   }
 
+  @Input() client!: Client
   default: number = 30
   options = options
   data!: boolean
@@ -25,10 +25,22 @@ export class ClientDashboardComponent implements OnInit {
     this.getStats()
   }
 
+  download() {
+    this.clientSvc.getRecords(this.default)
+      .then(value => {
+        const a = document.createElement("a");
+        a.href = "data:text/csv," + value.csv;
+        a.setAttribute('download', `${this.client.estName}_Records_${this.stats.first}-${this.stats.last}.csv`.replace(' ', '_'));
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      })
+  }
+
   async getStats(): Promise<any> {
     if (this.chart)
       this.chart.destroy()
-    
+
     return this.clientSvc.getStats(this.default)
       .then(value => {
         this.data = true
@@ -36,13 +48,13 @@ export class ClientDashboardComponent implements OnInit {
       })
       .then(() => this.createChart())
       .catch(() => {
-        this.stats = {sales: 0, top: [], hourly: []}
+        this.stats = { sales: 0, top: [], hourly: [], first: 0, last: 0 }
         this.data = false
       })
   }
 
   processHourlyCount(): number[] {
-    var result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+    var result = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     if (!!this.stats.hourly)
       this.stats.hourly.forEach(value => {
         result[value._id] = value.count
@@ -52,14 +64,16 @@ export class ClientDashboardComponent implements OnInit {
 
   createChart() {
     this.chart = new Chart('canvas', {
-      type: 'bar',
+      type: 'line',
       data: {
         labels: hours,
         datasets: [
           {
             label: 'No. of orders',
             data: this.processHourlyCount(),
-            borderWidth: 0
+            fill: false,
+            borderColor: '#8585ff',
+            tension: 0.1
           }
         ]
       },

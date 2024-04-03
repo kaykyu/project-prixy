@@ -5,6 +5,7 @@ export interface Login {
 }
 
 export interface Auth {
+    iss: string
     sub: string
     email: string
     exp: number
@@ -46,9 +47,10 @@ export interface Order {
 }
 
 export interface User {
+    iss: string
     sub: string
     client: string
-    table: number
+    table: string
     exp: number
 }
 
@@ -68,10 +70,22 @@ export interface KitchenOrder {
     status: string
 }
 
+export interface OrderRequest {
+    client: string
+    table: string
+    name: string
+    email: string
+    comments: string
+    cart: { id: string, quantity: number }[]
+    token: string
+}
+
 export interface Stats {
     sales: number
     top: {_id: string, name: string, quantity: number}[]
     hourly: { _id: number, count: number }[]
+    first: number
+    last: number
 }
 
 export interface OrderEdit {

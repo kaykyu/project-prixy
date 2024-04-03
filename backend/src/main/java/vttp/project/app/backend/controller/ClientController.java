@@ -1,5 +1,7 @@
 package vttp.project.app.backend.controller;
 
+import java.io.IOException;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
@@ -116,7 +118,7 @@ public class ClientController {
     public ResponseEntity<Void> putItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
         if (clientSvc.editItem(token, edit))
             return ResponseEntity.ok().build();
-        return ResponseEntity.notFound().build();
+        return ResponseEntity.internalServerError().build();
     }
 
     @PostMapping(path = "/order/item/delete")
@@ -158,5 +160,14 @@ public class ClientController {
         if (result == null)
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(result);
+    }
+
+    @GetMapping(path = "/records")
+    public ResponseEntity<String> getRecords(@RequestHeader("Authorization") String token, @RequestParam Integer q) {
+        try {
+            return ResponseEntity.ok(clientSvc.createCSV(token, q).toString());
+        } catch (IOException e) {
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }

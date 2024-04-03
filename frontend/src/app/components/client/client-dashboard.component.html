@@ -13,11 +13,14 @@
 
     <div *ngIf="!!stats; else loading">
         <div *ngIf="data; else noData" class="main-container">
+            <h5>Showing data from {{stats.first}} to {{stats.last}}</h5>
+            <button class="floating" mat-fab color="accent" matTooltip="Download records as CSV" (click)="download()"><mat-icon>analytics</mat-icon></button>
+
             <mat-grid-list cols="4" rowHeight="100px">
                 <mat-grid-tile>
                     <mat-card>
                         <mat-card-header>
-                            <mat-card-title>Total sales</mat-card-title>
+                            <mat-card-title>Net sales</mat-card-title>
                         </mat-card-header>
                         <mat-card-content>
                             <p>{{stats.sales | currency}}</p>

@@ -118,8 +118,8 @@ public class ClientRepository {
                     SqlRowSet rs2 = sqlTemplate.queryForRowSet(Queries.SQL_GET_ORDER_ITEMS, value.getId());
                     while (rs2.next())
                         list.add(new Order(
-                                rs2.getString("item_id"),
-                                rs2.getString("item_name"),
+                                rs2.getString("id"),
+                                rs2.getString("name"),
                                 rs2.getInt("quantity"),
                                 rs2.getBoolean("completed")));
                     value.setOrders(list.toArray(new Order[0]));
@@ -130,7 +130,7 @@ public class ClientRepository {
 
     public CompletedOrder getOrder(String id) {
 
-        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_ORDER_BY_ID, id);
+        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_COMPLETED_ORDER, id);
         if (rs.next())
             return new CompletedOrder(
                     rs.getString("id"),
@@ -139,7 +139,10 @@ public class ClientRepository {
                     rs.getString("table_id"),
                     rs.getString("email"),
                     rs.getString("name"),
+                    rs.getString("comments"),
                     rs.getString("payment_id"),
+                    rs.getString("charge_id"),
+                    rs.getString("receipt"),
                     rs.getDouble("amount"));
         return null;
     }
@@ -160,7 +163,7 @@ public class ClientRepository {
         SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_ORDER_ITEMS, order.getId());
 
         while (rs.next())
-            orders.add(new Order(rs.getString("item_id"), rs.getString("item_name"), rs.getInt("quantity")));
+            orders.add(new Order(rs.getString("id"), rs.getString("name"), rs.getInt("quantity")));
 
         order.setOrders(orders.toArray(new Order[0]));
         return order;
@@ -191,25 +194,17 @@ public class ClientRepository {
         return sqlTemplate.update(Queries.SQL_DELETE_ORDER_ITEMS_BY_ID, id) > 0;
     }
 
-    public String getChargeId(String id) {
-
-        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_CHARGE_BY_ORDER, id);
-        if (rs.next())
-            return rs.getString("id");
-        return null;
-    }
-
     public Boolean removeCharge(String id) {
         return sqlTemplate.update(Queries.SQL_DELETE_CHARGE, id) == 1;
     }
 
-    public Double getPrice(String id) {
+    // public Double getPrice(String id) {
 
-        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_MENU_PRICE_BY_ID, id);
-        if (rs.next())
-            return rs.getDouble("price");
-        return null;
-    }
+    //     SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_MENU_PRICE_BY_ID, id);
+    //     if (rs.next())
+    //         return rs.getDouble("price");
+    //     return null;
+    // }
 
     public KitchenOrder getProgress(String id) {
         

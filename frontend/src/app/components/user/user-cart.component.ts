@@ -1,7 +1,7 @@
 import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
 import { UserStoreService } from '../../service/user-store.service';
 import { Subscription, tap } from 'rxjs';
-import { Order, Tax, User } from '../../models';
+import { Order, OrderRequest, Tax, User } from '../../models';
 import { UserService } from '../../service/user.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
@@ -34,7 +34,7 @@ export class UserCartComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.userSvc.setKey()
 
-    this.cartInit()
+    const value = this.cartInit()
       .then(() => this.userSvc.getTax(this.user.sub))
       .then(value => {
         this.tax = value
@@ -77,13 +77,14 @@ export class UserCartComponent implements OnInit, OnDestroy {
   processOrder() {
     localStorage.setItem(this.user.sub, JSON.stringify(this.cart))
 
-    const req = {
-      token: this.ar.snapshot.parent?.params['token'],
+    const req: OrderRequest = {
+      client: this.user.sub,
+      table: this.user.table,
       cart: this.cart,
-      amount: this.sum.toFixed(2),
       name: this.form.value.name,
       email: this.form.value.email,
-      comments: this.form.value.comments
+      comments: this.form.value.comments,
+      token: this.ar.snapshot.parent?.params['token']
     }
     this.userSvc.makeOrder(req)
   }

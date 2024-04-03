@@ -23,6 +23,8 @@ import { ClientMenuDetailsComponent } from './components/client/client-menu-deta
 import { ClientAccountComponent } from './components/client/client-account.component';
 import { ImageCropperModule } from 'ngx-image-cropper';
 import { ServiceWorkerModule } from '@angular/service-worker';
+import { ClipboardModule } from '@angular/cdk/clipboard';
+import { UserTitleComponent } from './components/user/user-title.component';
 
 @NgModule({
   declarations: [
@@ -40,7 +42,8 @@ import { ServiceWorkerModule } from '@angular/service-worker';
     HomeComponent,
     ClientDashboardComponent,
     ClientMenuDetailsComponent,
-    ClientAccountComponent
+    ClientAccountComponent,
+    UserTitleComponent
   ],
   imports: [
     BrowserModule,
@@ -54,7 +57,8 @@ import { ServiceWorkerModule } from '@angular/service-worker';
       // Register the ServiceWorker as soon as the application is stable
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000'
-    })
+    }),
+    ClipboardModule
   ],
   providers: [
     provideAnimationsAsync()

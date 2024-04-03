@@ -14,15 +14,16 @@ import { ClientKitchenComponent } from './components/client/client-kitchen.compo
 import { ClientDashboardComponent } from './components/client/client-dashboard.component';
 import { ClientAccountComponent } from './components/client/client-account.component';
 import { isTokenValid } from './guards';
+import { UserTitleComponent } from './components/user/user-title.component';
 
 const routes: Routes = [
   { path: 'login', component: LoginComponent },
   {
     path: 'main', component: ClientMainComponent, children: [
       { path: 'menu', component: ClientMenuComponent },
-      { path: 'kitchen', component: ClientKitchenComponent},
+      { path: 'kitchen', component: ClientKitchenComponent },
       { path: 'dash', component: ClientDashboardComponent },
-      {path: 'account', component: ClientAccountComponent},
+      { path: 'account', component: ClientAccountComponent },
       { path: '**', redirectTo: 'dash', pathMatch: 'full' }
     ]
   },
@@ -31,7 +32,8 @@ const routes: Routes = [
       { path: 'cart', component: UserCartComponent },
       { path: 'success/:id', component: UserSuccessComponent },
       { path: 'menu', component: UserMenuComponent },
-      { path: '**', redirectTo: 'menu', pathMatch: 'full' }
+      { path: '', component: UserTitleComponent },
+      { path: '**', redirectTo: '', pathMatch: 'full' }
     ]
   },
   { path: 'error', component: ErrorComponent },

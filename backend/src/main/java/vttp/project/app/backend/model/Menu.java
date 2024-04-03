@@ -2,6 +2,9 @@ package vttp.project.app.backend.model;
 
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
+import jakarta.validation.constraints.DecimalMax;
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.NotEmpty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -12,11 +15,24 @@ import lombok.NoArgsConstructor;
 public class Menu {
 
     private String id;
+
+    @NotEmpty(message = "Name is required")
     private String name;
+
     private String description;
     private String image;
+
+    @NotEmpty(message = "Price is required")
+    @DecimalMin(value = "0.01", message = "Price must be more than 0.01")
+    @DecimalMax(value = "999.99", message = "Price must be less than 999.99")
     private Double price;
-    private MenuCategory category;    
+    
+    private MenuCategory category;
+    
+    public Menu(String name, Double price) {
+        this.name = name;
+        this.price = price;
+    }
 
     public Menu(String name, String description, Double price, MenuCategory category) {
         this.name = name;

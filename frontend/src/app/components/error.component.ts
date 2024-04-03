@@ -18,5 +18,7 @@ export class ErrorComponent implements OnInit {
     const error = this.ar.snapshot.queryParams['error']
     if (error == 'expired')
       this.message = 'Your link has expired.'
+    else if (error == 'invalidlink')
+      this.message = 'Your link is invalid. Please check with the staff.'
   }
 }

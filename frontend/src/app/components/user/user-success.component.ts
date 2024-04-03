@@ -3,7 +3,6 @@ import { ActivatedRoute } from '@angular/router';
 import { UserService } from '../../service/user.service';
 import { Order, User } from '../../models';
 import { Observable } from 'rxjs';
-import { SocketService } from '../../service/socket.service';
 
 @Component({
   selector: 'app-success',
@@ -26,9 +25,13 @@ export class UserSuccessComponent implements OnInit {
     this.order$ = this.userSvc.getOrders(this.id)
   }
 
+  copied() {
+    this.userSvc.openSnackBar('Copied to clipboard')
+  }
+
   sendReceipt() {
     this.userSvc.sendReceipt(this.id)
-      .then((value) => alert(`Receipt was sent to ${value.email}`))
+      .then((value) => this.userSvc.openSnackBar(`Email was send to ${value.email}`))
       .catch(() => alert('Something went wrong.'))
   }
 }

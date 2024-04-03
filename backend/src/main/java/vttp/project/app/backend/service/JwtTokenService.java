@@ -52,7 +52,8 @@ public class JwtTokenService {
                         .withExpiresAt(now.plus(4, ChronoUnit.HOURS))
                         .withClaim("client", clientRepo.getClient(client).getEstName())
                         .withClaim("table", table)
-                        .sign(Algorithm.HMAC256(secretKey)))
+                        .sign(Algorithm.HMAC256(secretKey))
+                        .split("\\.")[1])                        
                 .build();
     }
 }

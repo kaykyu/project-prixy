@@ -2,7 +2,6 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { Observable } from 'rxjs';
 import { Menu, Order, User } from '../../models';
 import { UserStoreService } from '../../service/user-store.service';
-import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Component({
   selector: 'app-user-menu',
@@ -13,7 +12,6 @@ export class
   UserMenuComponent implements OnInit {
 
   private userStore: UserStoreService = inject(UserStoreService)
-  private _snackBar = inject(MatSnackBar)
 
   @Input() user!: User
   menu$!: Observable<Menu[]>
@@ -22,10 +20,6 @@ export class
   ngOnInit(): void {
     this.menu$ = this.userStore.getMenu
     this.categories$ = this.userStore.getCategories
-  }
-
-  openSnackBar(message: string) {
-    this._snackBar.open(message, undefined, { duration: 1000 });
   }
 
   filter(menu: Menu[], category: string): Menu[] {
@@ -41,9 +35,9 @@ export class
     }
     this.userStore.editOrder(order)
     if (quantity === 1)
-      this.openSnackBar(`${item.name} added to cart.`)
+      this.userStore.snackBar(`${item.name} added to cart.`)
     else
-      this.openSnackBar(`${item.name} removed from cart.`)
+      this.userStore.snackBar(`${item.name} removed from cart.`)
   }
 
 }

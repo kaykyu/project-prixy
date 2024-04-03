@@ -16,9 +16,10 @@
                         </table>
                     </mat-card-content>
                     <mat-card-actions align="end">
-                        <button mat-button (click)="toCart(m, 1)"><mat-icon>add</mat-icon></button>
+                        <button mat-button (click)="toCart(m, -1)"
+                            [disabled]="m.quantity == 0"><mat-icon>remove</mat-icon></button>
                         <span class="quantity">{{m.quantity}}</span>
-                        <button mat-button (click)="toCart(m, -1)" [disabled]="m.quantity == 0"><mat-icon>remove</mat-icon></button>
+                        <button mat-button (click)="toCart(m, 1)"><mat-icon>add</mat-icon></button>
                     </mat-card-actions>
                 </mat-card>
             </div>

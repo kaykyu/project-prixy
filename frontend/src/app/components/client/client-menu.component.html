@@ -12,44 +12,50 @@
                     }
                 </mat-form-field>
             </div>
-            <div class="menu" *ngFor="let m of search(menu, query.value)">
-                <mat-card class="menu">
-                    <mat-card-header>
-                        <mat-card-title>{{m.name}}</mat-card-title>
-                        <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
-                    </mat-card-header>
-                    <img mat-card-image [src]="m.image" width="300" height="300">
-                    <mat-card-content class="description" [matTooltip]="m.description" [matTooltipDisabled]="m.description.length <= 30">
-                        <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
-                    </mat-card-content>
-                    <mat-card-actions align="end">
-                        <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
-                                color="accent">edit</mat-icon></button>
-                        <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
-                                color="warn">delete</mat-icon></button>
-                    </mat-card-actions>
-                </mat-card>
+            <div class="parent">
+                <div class="menu" *ngFor="let m of search(menu, query.value)">
+                    <mat-card class="menu">
+                        <mat-card-header>
+                            <mat-card-title>{{m.name}}</mat-card-title>
+                            <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
+                        </mat-card-header>
+                        <img mat-card-image [src]="m.image" width="300" height="300">
+                        <mat-card-content class="description" [matTooltip]="m.description"
+                            [matTooltipDisabled]="m.description.length <= 30">
+                            <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
+                        </mat-card-content>
+                        <mat-card-actions align="end">
+                            <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
+                                    color="accent">edit</mat-icon></button>
+                            <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
+                                    color="warn">delete</mat-icon></button>
+                        </mat-card-actions>
+                    </mat-card>
+                </div>
             </div>
         </mat-tab>
 
         <mat-tab *ngFor="let c of categories" [label]="c">
-            <div class="menu" *ngFor="let m of filter(menu, c)">
-                <mat-card class="menu">
-                    <mat-card-header>
-                        <mat-card-title>{{m.name}}</mat-card-title>
-                        <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
-                    </mat-card-header>
-                    <img mat-card-image [src]="m.image" width="300" height="300">
-                    <mat-card-content [matTooltip]="m.description" [matTooltipDisabled]="m.description.length <= 30">
-                        <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
-                    </mat-card-content>
-                    <mat-card-actions align="end">
-                        <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
-                                color="accent">edit</mat-icon></button>
-                        <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
-                                color="warn">delete</mat-icon></button>
-                    </mat-card-actions>
-                </mat-card>
+            <div class="parent">
+                <div class="menu" *ngFor="let m of filter(menu, c)">
+                    <mat-card class="menu">
+                        <mat-card-header>
+                            <mat-card-title>{{m.name}}</mat-card-title>
+                            <mat-card-subtitle>{{m.price | currency}}</mat-card-subtitle>
+                        </mat-card-header>
+                        <img mat-card-image [src]="m.image" width="300" height="300">
+                        <mat-card-content class="description" [matTooltip]="m.description"
+                            [matTooltipDisabled]="m.description.length <= 30">
+                            <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
+                        </mat-card-content>
+                        <mat-card-actions align="end">
+                            <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
+                                    color="accent">edit</mat-icon></button>
+                            <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
+                                    color="warn">delete</mat-icon></button>
+                        </mat-card-actions>
+                    </mat-card>
+                </div>
             </div>
         </mat-tab>
     </mat-tab-group>
