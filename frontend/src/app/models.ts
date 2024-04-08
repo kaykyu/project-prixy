@@ -16,7 +16,6 @@ export interface Client {
     email: string
     estName: string
     tax: Tax
-    status: boolean
 }
 
 export interface Tax {
@@ -65,6 +64,7 @@ export interface KitchenOrder {
     table: number
     date: Date
     orders: Order[]
+    pending: Order[]
     comments: string
     progress: number
     status: string
@@ -80,12 +80,23 @@ export interface OrderRequest {
     token: string
 }
 
+export interface OrderDetails {
+    id: string
+    name: string
+    date: Date
+    table: string
+    comments: string
+    amount: number
+    orders: Order[]
+    pending: boolean
+}
+
 export interface Stats {
     sales: number
     top: {_id: string, name: string, quantity: number}[]
     hourly: { _id: number, count: number }[]
-    first: number
-    last: number
+    first: string
+    last: string
 }
 
 export interface OrderEdit {
@@ -94,4 +105,10 @@ export interface OrderEdit {
     progress?: number
     old?: number
     quantity?: number
+}
+
+export interface LineItem {
+    name: string
+    quantity: number
+    amount: number
 }

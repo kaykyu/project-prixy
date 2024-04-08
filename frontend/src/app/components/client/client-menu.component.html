@@ -25,9 +25,11 @@
                             <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
                         </mat-card-content>
                         <mat-card-actions align="end">
-                            <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
+                            <button mat-icon-button matTooltip="Remove image" [hidden]="!hasImage(m)"
+                                (click)="removeImage(m.id, m.name)"><mat-icon>hide_image</mat-icon></button>
+                            <button mat-icon-button matTooltip="Edit menu" (click)="openAddDialog(m)"><mat-icon
                                     color="accent">edit</mat-icon></button>
-                            <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
+                            <button mat-icon-button matTooltip="Delete menu" (click)="delete(m.id, m.name)"><mat-icon
                                     color="warn">delete</mat-icon></button>
                         </mat-card-actions>
                     </mat-card>
@@ -49,9 +51,11 @@
                             <p>{{m.description | slice: 0 : 30}}<span *ngIf="m.description.length > 30">...</span></p>
                         </mat-card-content>
                         <mat-card-actions align="end">
-                            <button mat-icon-button (click)="openAddDialog(m)"><mat-icon
+                            <button mat-icon-button matTooltip="Remove image" [hidden]="!hasImage(m)"
+                                (click)="removeImage(m.id, m.name)"><mat-icon>hide_image</mat-icon></button>
+                            <button mat-icon-button matTooltip="Edit menu" (click)="openAddDialog(m)"><mat-icon
                                     color="accent">edit</mat-icon></button>
-                            <button mat-icon-button (click)="delete(m.id, m.name)"><mat-icon
+                            <button mat-icon-button matTooltip="Delete menu" (click)="delete(m.id, m.name)"><mat-icon
                                     color="warn">delete</mat-icon></button>
                         </mat-card-actions>
                     </mat-card>

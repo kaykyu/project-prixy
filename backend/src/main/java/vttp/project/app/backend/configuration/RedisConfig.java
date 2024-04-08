@@ -9,6 +9,8 @@ import org.springframework.data.redis.connection.jedis.JedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
+import vttp.project.app.backend.model.LineItem;
+
 @Configuration
 public class RedisConfig {
 
@@ -26,6 +28,9 @@ public class RedisConfig {
 
     @Value("${spring.redis.database.users}")
     private Integer redisUsersDatabase;
+
+    @Value("${spring.redis.database.receipts}")
+    private Integer redisReceiptsDatabase;
 
     public JedisConnectionFactory createConnectionFactory(Integer database) {
 
@@ -54,6 +59,16 @@ public class RedisConfig {
 
         template.setKeySerializer(new StringRedisSerializer());
         template.setValueSerializer(new StringRedisSerializer());
+        return template;
+    }
+
+    @Bean
+    public RedisTemplate<String, LineItem> redisReceipts() {
+
+        RedisTemplate<String, LineItem> template = new RedisTemplate<>();
+        template.setConnectionFactory(createConnectionFactory(redisReceiptsDatabase));
+
+        template.setKeySerializer(new StringRedisSerializer());
         return template;
     }
 }

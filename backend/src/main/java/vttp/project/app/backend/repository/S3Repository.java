@@ -34,4 +34,10 @@ public class S3Repository {
         s3.putObject(req);
         return s3.getUrl(bucket, key).toExternalForm();
     }
+
+    public void deleteImage(String id) {
+
+        String key = "project/%s".formatted(id);
+        s3.deleteObject(bucket, key);
+    }
 }

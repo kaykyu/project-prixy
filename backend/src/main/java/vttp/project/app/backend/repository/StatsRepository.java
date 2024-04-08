@@ -64,7 +64,8 @@ public class StatsRepository {
         query.with(Sort.by(sort, "ordered_date"))
                 .limit(1)
                 .fields().include("ordered_date")
-                .project(MongoExpression.create("$dateToString: {date: '$ordered_date', timezone: 'Asia/Singapore', format: '%d %b %Y'}"))
+                .project(MongoExpression.create(
+                        "$dateToString: {date: '$ordered_date', timezone: 'Asia/Singapore', format: '%d %b %Y'}"))
                 .as("date");
         return mongoTemplate.findOne(query, Document.class, COLL);
     }
@@ -117,13 +118,15 @@ public class StatsRepository {
                 .append("last", getRange(criteria, Direction.DESC).getString("date"));
     }
 
-    public Document getEmail(String payment) {
-        Query query = Query.query(Criteria.where("payment_id").is(payment));
-        return mongoTemplate.findOne(query, Document.class, COLL);
-    }
-
     public List<Document> getRecords(String id, Integer days) {
-        Query query = Query.query(filter(id, days));
+        Query query = Query.query(filter(id, days))
+                .with(Sort.by(Direction.ASC, "ordered_date"));
+
+        query.fields().include("id","ordered_date","table_id", "email", "name", "comments", "payment_id", "charge_id",
+                        "receipt", "amount", "orders")
+                .project(MongoExpression.create(
+                        "$dateToString: {date: '$ordered_date', timezone: 'Asia/Singapore', format: '%d %b %Y - %H:%M:%S'}"))
+                .as("date");
         return mongoTemplate.find(query, Document.class, COLL);
     }
 }

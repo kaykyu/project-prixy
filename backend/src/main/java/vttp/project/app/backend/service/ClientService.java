@@ -2,6 +2,7 @@ package vttp.project.app.backend.service;
 
 import java.io.IOException;
 import java.io.StringWriter;
+import java.text.DecimalFormat;
 import java.util.List;
 import java.util.UUID;
 
@@ -9,6 +10,7 @@ import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
@@ -25,9 +27,12 @@ import vttp.project.app.backend.model.Client;
 import vttp.project.app.backend.model.CompletedOrder;
 import vttp.project.app.backend.model.Menu;
 import vttp.project.app.backend.model.OrderEdit;
+import vttp.project.app.backend.model.OrderStatus;
+import vttp.project.app.backend.model.Tax;
 import vttp.project.app.backend.repository.ClientRepository;
 import vttp.project.app.backend.repository.S3Repository;
 import vttp.project.app.backend.repository.StatsRepository;
+import vttp.project.app.backend.repository.UserRepository;
 
 @Service
 public class ClientService {
@@ -42,6 +47,9 @@ public class ClientService {
     private StatsRepository statsRepo;
 
     @Autowired
+    private UserRepository userRepo;
+
+    @Autowired
     private JwtDecoder decoder;
 
     @Autowired
@@ -49,6 +57,9 @@ public class ClientService {
 
     @Autowired
     private StripeService stripeSvc;
+
+    @Value("${gst}")
+    private Integer gst;
 
     public String getId(String token) {
         return decoder.decode(token.split(" ")[1]).getSubject();
@@ -98,15 +109,21 @@ public class ClientService {
     }
 
     public Boolean putMenu(Menu menu, MultipartFile imageFile) {
-        try {
-            if (imageFile != null)
+        if (imageFile != null)
+            try {
                 menu.setImage(s3Repo.saveImage(imageFile, menu.getId()));
-            return clientRepo.putMenu(menu);
+                clientRepo.putMenuImage(menu.getId(), menu.getImage());
 
-        } catch (IOException e) {
-            return false;
-        }
+            } catch (IOException e) {
+                return false;
+            }
+        return clientRepo.putMenu(menu);
     }
+
+    public Boolean deleteMenuImage(String id) {
+        s3Repo.deleteImage(id);
+        return clientRepo.putMenuImage(id, null);
+    } 
 
     public Boolean deleteMenu(String id) {
         return clientRepo.deleteMenu(id);
@@ -123,6 +140,17 @@ public class ClientService {
         return jwtSvc.generateOrderLink(getId(token), table);
     }
 
+    public JsonArray getBill(String order) {
+        return Json.createArrayBuilder(clientRepo.getLineItems(order).stream()
+                .map(value -> value.toJson())
+                .toList())
+                .build();
+    }
+
+    public Boolean postPayment(String order) {
+        return clientRepo.updateOrderStatus(order, OrderStatus.RECEIVED);
+    }
+
     @Transactional(rollbackFor = SqlOrdersException.class)
     public void completeItem(OrderEdit edit) throws SqlOrdersException {
 
@@ -131,35 +159,70 @@ public class ClientService {
             throw new SqlOrdersException("Failed to update completed order item");
     }
 
-    public Boolean editItem(String token, OrderEdit edit) {
+    public Double applyTax(String id, Double amount) {
+        Tax tax = userRepo.getTaxes(id);
 
-        try {
-            stripeSvc.createRefund(getId(token), edit);
-            return clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity());
+        if (tax.getSvc() != 0)
+            amount *= 100 + tax.getSvc();
+        if (tax.getGst())
+            amount *= 100 + gst;
 
-        } catch (StripeException e) {
-            return false;
-        }
+        DecimalFormat df = new DecimalFormat("0.00");
+        return Double.parseDouble(df.format(amount / 10000));
+    }
+
+    public Double getAmount(String id, OrderEdit edit) {
+        Menu menu = userRepo.getMenu(edit.getItem());
+        return applyTax(id, menu.getPrice() * (edit.getOld() - edit.getQuantity()));
+    }
+
+    public JsonObject editItem(String token, OrderEdit edit) {
+
+        String id = getId(token);
+        Double refund = getAmount(id, edit);
+
+        if (edit.getId().toLowerCase().endsWith("s"))
+            try {
+                stripeSvc.createRefund(userRepo.getChargeId(edit.getId()), refund);
+                refund = 0.0;
+
+            } catch (StripeException e) {
+                return JsonObject.EMPTY_JSON_OBJECT;
+            }
+
+        if (clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity()))
+            return Json.createObjectBuilder().add("refund", refund.toString()).build();
+        return JsonObject.EMPTY_JSON_OBJECT;
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public Boolean deleteItem(String token, OrderEdit edit) throws SqlOrdersException {
-        try {
-            stripeSvc.createRefund(getId(token), edit);
-            if (edit.getProgress() == 100) {
-                clientRepo.removeOrderItem(edit.getId(), edit.getItem());
-                completeOrder(edit.getId());
-                return true;
+    public JsonObject deleteItem(String token, OrderEdit edit) throws SqlOrdersException {
 
-            } else if ((clientRepo.updateOrderProgress(edit.getProgress(), edit.getId())
-                    && clientRepo.removeOrderItem(edit.getId(), edit.getItem())))
-                return true;
-            else
-                throw new SqlOrdersException("Failed to update removed order item");
+        String id = getId(token);
+        Double refund = getAmount(id, edit);
 
-        } catch (StripeException e) {
-            return false;
+        if (edit.getId().toLowerCase().endsWith("s"))
+            try {
+                stripeSvc.createRefund(userRepo.getChargeId(edit.getId()), refund);
+                refund = 0.0;
+
+            } catch (StripeException e) {
+                return JsonObject.EMPTY_JSON_OBJECT;
+            }
+
+        switch (edit.getProgress()) {
+            case 100:
+                if (!(clientRepo.removeOrderItem(edit.getId(), edit.getItem()) && completeOrder(edit.getId())))
+                    throw new SqlOrdersException("Failed to update removed order item");
+                break;
+
+            default:
+                if (!(clientRepo.updateOrderProgress(edit.getProgress(), edit.getId())
+                        && clientRepo.removeOrderItem(edit.getId(), edit.getItem())))
+                    throw new SqlOrdersException("Failed to update removed order item");
         }
+
+        return Json.createObjectBuilder().add("refund", refund.toString()).build();
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
@@ -171,8 +234,11 @@ public class ClientService {
 
         order = clientRepo.getOrderItems(order);
 
-        if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)
-                && clientRepo.removeCharge(order.getCharge())))
+        if (id.toLowerCase().endsWith("s"))
+            if (!clientRepo.removeCharge(order.getCharge()))
+                throw new SqlOrdersException("Failed to update removed charge");
+
+        if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)))
             throw new SqlOrdersException("Failed to update completed order");
 
         statsRepo.saveCompletedOrder(order);
@@ -180,18 +246,25 @@ public class ClientService {
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public Boolean removeOrder(String id) throws SqlOrdersException {
+    public JsonObject removeOrder(String id) throws SqlOrdersException {
 
-        try {
-            String charge = stripeSvc.createRefund(id);
-            if (!(clientRepo.removeCharge(charge) && clientRepo.removeOrderItems(id)
-                    && clientRepo.removeOrder(id)))
-                throw new SqlOrdersException("Failed to update removed order");
-            return true;
+        Double refund = 0.0;
+        if (id.endsWith("c"))
+            refund = clientRepo.getOrder(id).getAmount();
 
-        } catch (StripeException e) {
-            return false;
+        else {
+            try {
+                if (!clientRepo.removeCharge(stripeSvc.createRefund(id)))
+                    throw new SqlOrdersException("Failed to update removed charge");
+
+            } catch (StripeException e) {
+                return JsonObject.EMPTY_JSON_OBJECT;
+            }
         }
+
+        if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)))
+            throw new SqlOrdersException("Failed to update removed order");
+        return Json.createObjectBuilder().add("refund", refund.toString()).build();
     }
 
     public String getStats(String token, Integer q) {
@@ -208,7 +281,7 @@ public class ClientService {
         List<Document> docs = statsRepo.getRecords(getId(token), q);
 
         CSVFormat csvFormat = CSVFormat.DEFAULT.builder()
-                .setHeader("id", "client_id", "date", "table", "email", "name", "comments", "payment_id", "charge_id",
+                .setHeader("order_id", "date", "table", "email", "name", "comments", "payment_id", "charge_id",
                         "receipt", "amount", "orders")
                 .build();
 
@@ -222,8 +295,7 @@ public class ClientService {
                 try {
                     printer.printRecord(
                             doc.getString("id"),
-                            doc.getString("client_id"),
-                            doc.getDate("ordered_date").toString(),
+                            doc.getString("date"),
                             doc.getString("table_id"),
                             doc.getString("email"),
                             doc.getString("name"),

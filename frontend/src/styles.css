@@ -2,8 +2,11 @@ html,
 body {
     margin: 0;
     padding: 0;
-    height: 100%;
     overflow: auto;
+}
+
+.main {
+    height: 100vh;
 }
 
 .client {
@@ -27,4 +30,5 @@ body {
 
 .main-container {
     padding-top: 10px;
+    padding-bottom: 10px;
 }

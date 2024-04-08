@@ -1,13 +1,27 @@
-<div class="header">
-    <button mat-raised-button color="accent" (click)="generateLink()"><mat-icon>add_business</mat-icon> Generate order
-        link</button>
+<div class="main-container">
+    <mat-card>
+        <mat-card-content class="header">
+            <div class="inner">
+                <button mat-raised-button color="accent" (click)="generateLink()"><mat-icon>add_business</mat-icon>
+                    Generate order link</button>
+            </div>
+            <mat-divider [vertical]="true"></mat-divider>
+            <div class="inner">
+                <button mat-raised-button [matBadge]="pending.length" [matBadgeHidden]="pending.length == 0"
+                    matBadgeColor="accent" (click)="viewPendingOrders()"
+                    [disabled]="pending.length == 0"><mat-icon>payments</mat-icon>
+                    Pending payment</button>
+            </div>
+            <div></div>
+        </mat-card-content>
+    </mat-card>
 </div>
 
 <mat-divider class="divider"></mat-divider>
 
 <div *ngIf="orders$ | async as orders; else loading">
     <div class="orders" *ngIf="orders.length > 0; else noOrders">
-        <div class="card-container" *ngFor="let o of orders">
+        <div class="card-container" *ngFor="let o of filterOrders(orders)">
             <mat-card class="orders">
                 <mat-card-header>
                     <mat-card-title>{{o.date | date: 'h:mm a, dd MMM yy': 'Asia/Singapore'}}</mat-card-title>
@@ -90,7 +104,8 @@
         </div>
     </mat-dialog-content>
     <mat-dialog-actions align="center">
-        <button mat-raised-button color="primary" (click)="printLink()"><mat-icon>print</mat-icon>Print</button>
+        <button mat-raised-button mat-dialog-close><mat-icon>close</mat-icon>Close</button>
+        <button mat-raised-button color="primary" (click)="printLink(qrReceipt)"><mat-icon>print</mat-icon>Print</button>
     </mat-dialog-actions>
 </ng-template>
 
@@ -114,5 +129,18 @@
         <button mat-raised-button color="warn" [mat-dialog-close]="false"><mat-icon>close</mat-icon>Cancel</button>
         <button mat-raised-button color="primary" [mat-dialog-close]="true"
             [disabled]="form.invalid"><mat-icon>done</mat-icon>Confirm</button>
+    </mat-dialog-actions>
+</ng-template>
+
+<ng-template #pendingOrders>
+    <h2 mat-dialog-title>Orders pending payment</h2>
+    <mat-dialog-content>
+        <mat-action-list>
+            <button mat-list-item *ngFor="let o of pending" (click)="bill(o)" mat-dialog-close>OrderID: #{{o.id |
+                uppercase}}</button>
+        </mat-action-list>
+    </mat-dialog-content>
+    <mat-dialog-actions align="center">
+        <button mat-raised-button mat-dialog-close><mat-icon>close</mat-icon>Close</button>
     </mat-dialog-actions>
 </ng-template>

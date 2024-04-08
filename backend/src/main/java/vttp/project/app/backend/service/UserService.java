@@ -1,5 +1,7 @@
 package vttp.project.app.backend.service;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +16,12 @@ import jakarta.json.Json;
 import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import vttp.project.app.backend.exception.SqlOrdersException;
+import vttp.project.app.backend.model.LineItem;
+import vttp.project.app.backend.model.Menu;
+import vttp.project.app.backend.model.Order;
+import vttp.project.app.backend.model.OrderDetails;
 import vttp.project.app.backend.model.OrderRequest;
+import vttp.project.app.backend.model.OrderStatus;
 import vttp.project.app.backend.model.Tax;
 import vttp.project.app.backend.repository.ClientRepository;
 import vttp.project.app.backend.repository.UserRepository;
@@ -40,6 +47,9 @@ public class UserService {
     @Value("${webapp.host.url}")
     private String hostUrl;
 
+    @Value("${gst}")
+    private Integer gst;
+
     public JsonArray getMenu(String id) {
         return Json.createArrayBuilder(clientRepo.getMenu(id).stream()
                 .map(menu -> menu.toJson())
@@ -59,15 +69,45 @@ public class UserService {
         return tax.toJson();
     }
 
-    public JsonObject newOrder(OrderRequest request) throws StripeException {
+    public JsonObject newPendingOrder(OrderRequest request) {
 
-        request.setId(UUID.randomUUID().toString().substring(0, 8));
-        String baseUrl = "%s/order/%s".formatted(hostUrl, request.getToken());
+        request.setId(UUID.randomUUID().toString().substring(0, 7) + "c");
+        List<LineItem> list = new ArrayList<>();
+
+        for (Order order : request.getCart()) {
+            Menu menu = userRepo.getMenu(order.getId());
+            list.add(new LineItem(order.getName(), order.getQuantity(), menu.getPrice() * order.getQuantity()));
+        }
+
+        Tax tax = userRepo.getTaxes(request.getClient());
+        if (tax.getSvc() > 0)
+            list.add(new LineItem("Service Charge", LineItem.getTotal(list) * tax.getSvc() / 100));
+        if (tax.getGst())
+            list.add(new LineItem("GST", LineItem.getTotal(list) * gst / 100));
+
+        userRepo.saveLineItems(request.getId(), list);
+        request.setAmount(LineItem.getTotal(list));
+        try {
+            saveOrder(request, OrderStatus.PENDING);
+
+        } catch (SqlOrdersException e) {
+            e.printStackTrace();
+            return JsonObject.EMPTY_JSON_OBJECT;
+        }
+
+        socket.clientOrderIn(request.getClient());
+        return Json.createObjectBuilder()
+                .add("url", "/success/%s".formatted(request.getId())).build();
+    }
+
+    public JsonObject newStripeOrder(OrderRequest request) throws StripeException {
+
+        request.setId(UUID.randomUUID().toString().substring(0, 7) + "s");
         return Json.createObjectBuilder()
                 .add("id", stripeSvc.createPaymentIntent(
                         request,
-                        "%s/success/%s".formatted(baseUrl, request.getId()),
-                        "%s/cart".formatted(baseUrl)))
+                        "%s/success/%s".formatted(hostUrl, request.getId()),
+                        "%s/order/%s/cart".formatted(hostUrl, request.getToken())))
                 .build();
     }
 
@@ -76,16 +116,16 @@ public class UserService {
         OrderRequest request = stripeSvc.handleEvent(stripeSvc.webhookAuth(payload, sig));
         if (request != null)
             try {
-                saveOrder(request);
+                saveOrder(request, OrderStatus.RECEIVED);
             } catch (Exception e) {
                 e.printStackTrace();
             }
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public void saveOrder(OrderRequest request) throws SqlOrdersException, Exception {
+    public void saveOrder(OrderRequest request, OrderStatus status) throws SqlOrdersException {
 
-        if (!userRepo.saveOrder(request))
+        if (!userRepo.saveOrder(request, status))
             throw new SqlOrdersException("Failed to save into Orders");
 
         if (!userRepo.saveOrderItems(request))
@@ -95,7 +135,7 @@ public class UserService {
     }
 
     public JsonObject sendReceipt(String id) {
-        
+
         String[] email = userRepo.getReceiptUrl(id);
         try {
             emailSvc.sendReceipt(email[0], email[1]);
@@ -107,9 +147,13 @@ public class UserService {
         }
     }
 
-    public JsonArray getOrders(String id) {
-        return Json.createArrayBuilder(userRepo.getOrderItems(id).stream()
-                .map(value -> value.toJson())
-                .toList()).build();
+    public JsonObject getPostedOrders(String id) {
+
+        OrderDetails order = userRepo.getOrderDetails(id);
+        if (order == null)
+            return JsonObject.EMPTY_JSON_OBJECT;
+            
+        order.setOrders(userRepo.getOrderItems(id));
+        return order.toJson();
     }
 }

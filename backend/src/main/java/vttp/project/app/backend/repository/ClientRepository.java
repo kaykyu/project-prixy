@@ -5,13 +5,17 @@ import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Repository;
 
+import jakarta.annotation.Resource;
 import vttp.project.app.backend.model.Client;
 import vttp.project.app.backend.model.CompletedOrder;
 import vttp.project.app.backend.model.KitchenOrder;
+import vttp.project.app.backend.model.LineItem;
 import vttp.project.app.backend.model.Login;
 import vttp.project.app.backend.model.Menu;
 import vttp.project.app.backend.model.MenuCategory;
@@ -24,6 +28,12 @@ public class ClientRepository {
 
     @Autowired
     private JdbcTemplate sqlTemplate;
+
+    @Autowired
+    private RedisTemplate<String, LineItem> redisTemplate;
+
+    @Resource(name = "redisReceipts")
+    private ListOperations<String, LineItem> listOps;
 
     public Boolean signUp(Login login, String id) {
         return sqlTemplate.update(Queries.SQL_SAVE_CLIENT, login.getEmail(), id, login.getEstName()) > 0;
@@ -57,7 +67,7 @@ public class ClientRepository {
     public Boolean putEmail(String id, String email) throws DuplicateKeyException {
         return sqlTemplate.update(Queries.SQL_UPDATE_EMAIL, email, id) == 1;
     }
-
+    
     public List<Menu> getMenu(String id) {
 
         SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_MENU, id);
@@ -87,6 +97,10 @@ public class ClientRepository {
     public Boolean saveMenu(Menu menu, String id) {
         return sqlTemplate.update(Queries.SQL_SAVE_MENU, menu.getId(), menu.getName(), menu.getDescription(),
                 menu.getImage(), menu.getPrice(), menu.getCategory().toString(), id) == 1;
+    }
+
+    public Boolean putMenuImage(String id, String image) {
+        return sqlTemplate.update(Queries.SQL_UPDATE_MENU_IMAGE, image, id) == 1;
     }
 
     public Boolean putMenu(Menu menu) {
@@ -128,10 +142,21 @@ public class ClientRepository {
                 .toList();
     }
 
+    public List<LineItem> getLineItems(String id) {
+        return listOps.range(id, 0, listOps.size(id));
+    }
+
+    public Boolean updateOrderStatus(String id, OrderStatus status) {        
+        Boolean result = sqlTemplate.update(Queries.SQL_UPDATE_ORDER_STATUS, status.toString(), id) == 1;
+        if (result)
+            redisTemplate.delete(id);
+        return result;
+    }
+
     public CompletedOrder getOrder(String id) {
 
         SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_COMPLETED_ORDER, id);
-        if (rs.next())
+        if (rs.next()) {
             return new CompletedOrder(
                     rs.getString("id"),
                     rs.getString("client_id"),
@@ -144,17 +169,8 @@ public class ClientRepository {
                     rs.getString("charge_id"),
                     rs.getString("receipt"),
                     rs.getDouble("amount"));
-        return null;
-    }
-
-    public CompletedOrder getCharges(CompletedOrder order) {
-
-        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_CHARGE_BY_PAYMENT, order.getPayment());
-        if (rs.next()) {
-            order.setCharge(rs.getString("id"));
-            order.setReceipt(rs.getString("receipt"));
         }
-        return order;            
+        return null;
     }
 
     public CompletedOrder getOrderItems(CompletedOrder order) {
@@ -198,16 +214,8 @@ public class ClientRepository {
         return sqlTemplate.update(Queries.SQL_DELETE_CHARGE, id) == 1;
     }
 
-    // public Double getPrice(String id) {
-
-    //     SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_MENU_PRICE_BY_ID, id);
-    //     if (rs.next())
-    //         return rs.getDouble("price");
-    //     return null;
-    // }
-
     public KitchenOrder getProgress(String id) {
-        
+
         SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_ORDER_PROGRESS, id);
         if (rs.next())
             return new KitchenOrder(rs.getInt("progress"), OrderStatus.valueOf(rs.getString("status")));

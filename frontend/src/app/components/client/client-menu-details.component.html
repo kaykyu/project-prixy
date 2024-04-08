@@ -21,28 +21,38 @@
             </mat-select>
         </mat-form-field>
 
-        <button type="button" mat-stroked-button (click)="image.click()"><mat-icon>add_photo_alternate</mat-icon>{{add ?
-            'Upload' : 'Change'}} Image</button>
+        <button type="button" mat-stroked-button
+            (click)="image.click()"><mat-icon>add_photo_alternate</mat-icon>{{hasImage() ?
+            'Change' : 'Upload'}} Image</button>
         <input hidden (change)="onFileSelected($event)" #image type="file" accept="image/*">
-        <span class="file-name" *ngIf="selectedFile">{{selectedFile.name}}<button mat-icon-button color="warn" (click)="clearImage()"><mat-icon>cancel</mat-icon></button></span>
+        <span class="file-name" *ngIf="selectedFile">{{selectedFile.name}}<button mat-icon-button color="warn"
+                (click)="clearImage()"><mat-icon>cancel</mat-icon></button></span>
     </form>
 </mat-dialog-content>
 
 <mat-dialog-actions align="end">
     <button mat-stroked-button color="warn" mat-dialog-close><mat-icon>cancel</mat-icon>Cancel</button>
-    <button mat-stroked-button color="primary" [disabled]="form.invalid" (click)="process()"><mat-icon>done</mat-icon>{{add ? 'Add' :
+    <button mat-stroked-button color="primary" [disabled]="form.invalid"
+        (click)="process()"><mat-icon>done</mat-icon>{{add ? 'Add' :
         'Edit'}}</button>
 </mat-dialog-actions>
 
 <ng-template #cropper>
     <h2 mat-dialog-title>Please crop your image</h2>
     <mat-dialog-content>
-    <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true" [aspectRatio]="1 / 1" format="png"
-        (imageCropped)="imageCropped($event)" [output]="'base64'" [resizeToWidth]="300">
-    </image-cropper>
+        <image-cropper [imageChangedEvent]="imageChangedEvent" [maintainAspectRatio]="true" [aspectRatio]="1 / 1"
+            format="png" (imageCropped)="imageCropped($event)" [output]="'base64'" [resizeToWidth]="300">
+        </image-cropper>
     </mat-dialog-content>
     <mat-dialog-actions align="end">
-    <button mat-stroked-button color="warn" [mat-dialog-close]="false"><mat-icon>cancel</mat-icon>Cancel</button>
-    <button mat-stroked-button color="primary" [mat-dialog-close]="true"><mat-icon>done</mat-icon>Done</button>
+        <button mat-stroked-button color="warn" [mat-dialog-close]="false"><mat-icon>cancel</mat-icon>Cancel</button>
+        <button mat-stroked-button color="primary" [mat-dialog-close]="true"><mat-icon>done</mat-icon>Done</button>
     </mat-dialog-actions>
+</ng-template>
+
+<ng-template #loading>
+    <div class="loading">
+        <mat-spinner></mat-spinner>
+        <h6>Processing...</h6>
+    </div>
 </ng-template>

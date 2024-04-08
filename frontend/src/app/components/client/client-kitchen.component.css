@@ -33,11 +33,10 @@ mat-card.orders {
 }
 
 .header {
-    padding: 10px;
     text-align: center;
-    margin: auto;
     height: 100px;
     align-content: center;
+    display: flex;
 }
 
 .divider {
@@ -63,4 +62,10 @@ mat-card.orders {
 
 .comments {
     padding: 10px;
+}
+
+.inner {
+    width: 50%;
+    margin-top: auto;
+    margin-bottom: auto;
 }

@@ -1,48 +1,50 @@
-<mat-grid-list cols="2" rowHeight="100%" *ngIf="!isLogin; else loading">
-    <mat-grid-tile>
-        <div class="left">
-            <img src="https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/logo.png" width="75%">
-        </div>
-    </mat-grid-tile>
+<div class="main">
+    <mat-grid-list cols="2" rowHeight="100%" *ngIf="!isLogin; else loading">
+        <mat-grid-tile>
+            <div class="left">
+                <img src="https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/logo.png" width="75%">
+            </div>
+        </mat-grid-tile>
 
-    <mat-grid-tile class="purple" *ngIf="!isLogin; else loading">
-        <div class="right" *ngIf="!isSignup; else register">
-            <form [formGroup]="form" (submit)="login()">
-                <div class="top">
-                    <button mat-raised-button color="accent" type="button" (click)="newSignup()">
-                        Sign Up</button>
-                    <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Login</button>
-                </div>
-                <p>
-                    <mat-form-field>
-                        <mat-label>Email</mat-label>
-                        <input matInput type="email" formControlName="email">
-                        @if (form.controls['email'].hasError('email') &&
-                        !form.controls['email'].hasError('required')) {
-                        <mat-error>Please enter a valid email address</mat-error>
-                        }
-                        @if (form.controls['email'].hasError('required')) {
-                        <mat-error>Email is <strong>required</strong></mat-error>
-                        }
-                    </mat-form-field>
-                </p>
-                <p>
-                    <mat-form-field>
-                        <mat-label>Password</mat-label>
-                        <input matInput formControlName="pw" [type]="hide ? 'password' : 'text'">
-                        <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
-                            [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
-                            <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                        </button>
-                        @if (form.controls['pw'].hasError('required')) {
-                        <mat-error>Password is <strong>required</strong></mat-error>
-                        }
-                    </mat-form-field>
-                </p>
-            </form>
-        </div>
-    </mat-grid-tile>
-</mat-grid-list>
+        <mat-grid-tile class="purple" *ngIf="!isLogin; else loading">
+            <div class="right" *ngIf="!isSignup; else register">
+                <form [formGroup]="form" (submit)="login()">
+                    <div class="top">
+                        <button mat-raised-button color="accent" type="button" (click)="newSignup()">
+                            Sign Up</button>
+                        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Login</button>
+                    </div>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Email</mat-label>
+                            <input matInput type="email" formControlName="email">
+                            @if (form.controls['email'].hasError('email') &&
+                            !form.controls['email'].hasError('required')) {
+                            <mat-error>Please enter a valid email address</mat-error>
+                            }
+                            @if (form.controls['email'].hasError('required')) {
+                            <mat-error>Email is <strong>required</strong></mat-error>
+                            }
+                        </mat-form-field>
+                    </p>
+                    <p>
+                        <mat-form-field>
+                            <mat-label>Password</mat-label>
+                            <input matInput formControlName="pw" [type]="hide ? 'password' : 'text'">
+                            <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                                [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                                <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                            </button>
+                            @if (form.controls['pw'].hasError('required')) {
+                            <mat-error>Password is <strong>required</strong></mat-error>
+                            }
+                        </mat-form-field>
+                    </p>
+                </form>
+            </div>
+        </mat-grid-tile>
+    </mat-grid-list>
+</div>
 
 <ng-template #register>
     <div class="right">

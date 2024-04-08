@@ -1,6 +1,7 @@
 .header {
     display: inline;
     margin-right: 10px;
+    padding-bottom: 10px;
 }
 
 mat-card {

@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Auth, Client, KitchenOrder, Menu, OrderEdit, Stats } from '../models';
+import { Auth, Client, KitchenOrder, LineItem, Menu, OrderEdit, Stats } from '../models';
 import { Observable, Subject, firstValueFrom } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
@@ -66,6 +66,10 @@ export class ClientService {
     return firstValueFrom(this.http.put<void>('/api/client/menu', menu, { headers: this.headers() }))
   }
 
+  deleteMenuImage(id: string): Promise<void> {
+    return firstValueFrom(this.http.delete<void>(`/api/client/menu/${id}/image`, { headers: this.headers() }))
+  }
+
   deleteMenu(id: string): Promise<void> {
     return firstValueFrom(this.http.delete<void>(`/api/client/menu/${id}`, { headers: this.headers() }))
   }
@@ -78,8 +82,8 @@ export class ClientService {
     return firstValueFrom(this.http.post('/api/client/order/item', edit, { headers: this.headers() }))
   }
 
-  editItem(edit: OrderEdit): Promise<void> {
-    return firstValueFrom(this.http.put<void>('/api/client/order/item', edit, { headers: this.headers() }))
+  editItem(edit: OrderEdit): Promise<any> {
+    return firstValueFrom(this.http.put('/api/client/order/item', edit, { headers: this.headers() }))
   }
 
   deleteItem(edit: OrderEdit): Promise<any> {
@@ -97,6 +101,15 @@ export class ClientService {
   getOrderLink(table: string): Promise<any> {
     const param = new HttpParams().set('table', table)
     return firstValueFrom(this.http.get<any>('/api/client/orderLink', { headers: this.headers(), params: param }))
+  }
+
+  getLineItems(id: string): Promise<LineItem[]> {
+    const param = new HttpParams().set('order', id)
+    return firstValueFrom(this.http.get<LineItem[]>('/api/client/bill', { headers: this.headers(), params: param }))
+  }
+
+  postPayment(id: string): Promise<void> {
+    return firstValueFrom(this.http.post<void>('/api/client/payment', id, { headers: this.headers() }))
   }
 
   getStats(q: number): Promise<Stats> {

@@ -8,8 +8,8 @@ export const isTokenValid: CanActivateFn =
         const token: string = route.params['token']
         const user: User = JSON.parse(atob(token))
         if (user.exp < Date.now() / 1000)
-            return router.parseUrl(`/error?error=expired`);
+            return router.parseUrl('/error?error=expired');
         else if (user.iss !== 'Prixy')
-            return router.parseUrl(`/error?error=invalidlink`)
+            return router.parseUrl('/error?error=invalidlink')
         return true;
     }

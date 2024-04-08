@@ -40,7 +40,7 @@ create table orders (
     payment_id varchar(32),
     amount decimal(6,2) not null,
     progress int not null default 0,
-    status ENUM('RECEIVED','IN_PROGRESS', 'OUT_FOR_DELIVERY') not null default 'RECEIVED',
+    status ENUM('PENDING', 'RECEIVED','IN_PROGRESS') not null,
 
    primary key(id),
    key (payment_id),

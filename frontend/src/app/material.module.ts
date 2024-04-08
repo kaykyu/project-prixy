@@ -17,6 +17,9 @@ import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatRadioModule } from '@angular/material/radio';
 import { MatStepperModule } from '@angular/material/stepper';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatBottomSheetModule } from '@angular/material/bottom-sheet';
+import { MatListModule } from '@angular/material/list';
+import { MatBadgeModule } from '@angular/material/badge';
 
 const MATERIAL = [
   MatGridListModule,
@@ -36,7 +39,10 @@ const MATERIAL = [
   MatProgressSpinnerModule,
   MatRadioModule,
   MatStepperModule,
-  MatMenuModule
+  MatMenuModule,
+  MatBottomSheetModule,
+  MatListModule,
+  MatBadgeModule
 ]
 
 @NgModule({

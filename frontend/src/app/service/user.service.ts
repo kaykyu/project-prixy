@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, firstValueFrom } from 'rxjs';
-import { Menu, Order, OrderRequest, Tax, User } from '../models';
+import { Menu, Order, OrderDetails, OrderRequest, Tax, User } from '../models';
 import { loadStripe } from '@stripe/stripe-js';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';
@@ -40,19 +40,32 @@ export class UserService {
       .then(value => this.stripePromise = loadStripe(value.key))
   }
 
-  async makeOrder(req: OrderRequest): Promise<any> {
-    const stripe = await this.stripePromise
+  async makeOrder(req: OrderRequest, pending: boolean): Promise<any> {
+    const param = new HttpParams().set('pending', pending)
 
-    return this.http.post('/api/user/order', req).subscribe({
-      next: (value: any) => {
-        this.router.navigate(['loading'], { queryParams: { 'msg': 'Redirecting you to payment merchant...' } })
-        if (!!stripe)
-          stripe.redirectToCheckout({
-            sessionId: value.id
-          })
-      },
-      error: (err) => console.log(err)
-    })
+    if (pending)
+      firstValueFrom(this.http.post('/api/user/order', req, { params: param }))
+        .then((value: any) => this.router.navigateByUrl(value.url))
+        .catch(err => {
+          alert('Something went wrong.')
+          console.error(err)
+        })
+
+    else {
+      const stripe = await this.stripePromise
+      firstValueFrom(this.http.post('/api/user/order', req, { params: param }))
+        .then((value: any) => {
+          this.router.navigate(['loading'], { queryParams: { 'msg': 'Redirecting you to payment merchant...' } })
+          if (!!stripe)
+            stripe.redirectToCheckout({
+              sessionId: value.id
+            })
+        })
+        .catch(err => {
+          alert(err.error.error ? err.error.error : 'Something went wrong.')
+          console.log(err)
+        })
+    }
   }
 
   getTax(client: string): Promise<Tax> {
@@ -63,11 +76,7 @@ export class UserService {
     return firstValueFrom(this.http.post<any>('/api/user/receipt', email))
   }
 
-  getOrders(id: string): Observable<Order[]> {
-    return this.http.get<Order[]>(`/api/user/orders/${id}`)
+  getOrders(id: string): Promise<OrderDetails> {
+    return firstValueFrom(this.http.get<OrderDetails>(`/api/user/orders/${id}`))
   }
-
-  // getClientId(client: string): Promise<any> {
-  //   return firstValueFrom(this.http.get<any>(`/api/user/${client}/id`))
-  // }
 }

@@ -5,3 +5,7 @@ mat-form-field {
 .file-name {
     padding-left: 10px;
 }
+
+.loading {
+    margin: 50px;
+}

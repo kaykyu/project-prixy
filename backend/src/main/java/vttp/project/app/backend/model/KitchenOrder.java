@@ -17,6 +17,7 @@ public class KitchenOrder {
     private String id;
     private String table;
     private Order[] orders;
+    private Order[] pending;
     private Timestamp timestamp;
     private String comments;
     private Integer progress;

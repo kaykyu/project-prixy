@@ -42,6 +42,12 @@ public class Queries {
             value (?, ?, ?, ?, ?, ?, ?)
             """;
             
+    public static final String SQL_UPDATE_MENU_IMAGE = """
+            update menu
+            set image = ?
+            where id = ?
+            """;
+            
     public static final String SQL_UPDATE_MENU = """
             update menu
             set name = ?, description = ?, price = ?, category = ?
@@ -57,8 +63,8 @@ public class Queries {
             """;
 
     public static final String SQL_SAVE_ORDER = """
-            insert into orders(id, client_id, table_id, email, name, comments, payment_id, amount)
-            value (?, ?, ?, ?, ?, ?, ?, ?)
+            insert into orders(id, client_id, table_id, email, name, comments, payment_id, amount, status)
+            value (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """;
             
     public static final String SQL_SAVE_ORDER_ITEMS = """
@@ -77,11 +83,23 @@ public class Queries {
             inner join menu on menu.id = order_items.item_id
             where order_id = ?;
             """;
+            
+    public static final String SQL_GET_ORDER_DETAILS = """
+            select clients.id, clients.est_name, orders.ordered_date, orders.table_id, orders.comments, orders.amount, orders.status from clients 
+            inner join orders on clients.id = orders.client_id 
+            where orders.id = ?
+            """;
 
     public static final String SQL_GET_ORDER_BY_CLIENT = """
             select * from orders
             where client_id = ?
             order by ordered_date
+            """;
+            
+    public static final String SQL_UPDATE_ORDER_STATUS = """
+            update orders
+            set status = ?
+            where id = ?
             """;
             
     public static final String SQL_UPDATE_ORDER_PROGRESS = """
@@ -110,7 +128,7 @@ public class Queries {
     public static final String SQL_GET_COMPLETED_ORDER = """
             select orders.id, orders.client_id, orders.ordered_date, orders.table_id, orders.email, orders.name, orders.comments, orders.payment_id, orders.amount, 
             stripe_charge.id as charge_id, stripe_charge.receipt from orders 
-            inner join stripe_charge on orders.payment_id = stripe_charge.payment_id 
+            left join stripe_charge on orders.payment_id = stripe_charge.payment_id 
             where orders.id = ?
             """;
             
@@ -128,7 +146,7 @@ public class Queries {
             
     public static final String SQL_DELETE_ORDER_ITEMS_BY_ID = """
             delete from order_items where order_id = ?
-                    """;
+            """;
                       
     public static final String SQL_GET_MENU_BY_ID = """
             select * from menu where id = ?

@@ -32,19 +32,18 @@ public class OrderRequest {
     private String paymentId;
     private String token;
 
-    public OrderRequest(String client, String table, Order[] cart, Double amount, String id, String name, String email,
+    public OrderRequest(String client, String table, Order[] cart, String id, String name, String email,
             String comments) {
         this.client = client;
         this.table = table;
         this.cart = cart;
-        this.amount = amount;
         this.id = id;
         this.name = name;
         this.email = email;
         this.comments = comments;
     }
 
-    public Map<String, String> toMetadata(Double total) {
+    public Map<String, String> toMetadata() {
         Map<String, String> map = new HashMap<>();
 
         map.put("client", this.client);
@@ -57,7 +56,6 @@ public class OrderRequest {
                                 .build())
                         .toList())
                 .build().toString());
-        map.put("amount", total.toString());
         map.put("id", this.id);
         map.put("name", this.name);
         map.put("email", this.email);
@@ -71,7 +69,6 @@ public class OrderRequest {
                 map.get("client"),
                 map.get("table"),
                 Order.fromMetadata(Json.createReader(new StringReader(map.get("cart"))).readArray()),
-                Double.parseDouble(map.get("amount")),
                 map.get("id"),
                 map.get("name"),
                 map.get("email"),

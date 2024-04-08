@@ -30,7 +30,7 @@ export class ClientDashboardComponent implements OnInit {
       .then(value => {
         const a = document.createElement("a");
         a.href = "data:text/csv," + value.csv;
-        a.setAttribute('download', `${this.client.estName}_Records_${this.stats.first}-${this.stats.last}.csv`.replace(' ', '_'));
+        a.setAttribute('download', `${this.client.estName}_Records_${this.stats.first}_to_${this.stats.last}.csv`.replace(/\s+/g,'_'));
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -48,7 +48,7 @@ export class ClientDashboardComponent implements OnInit {
       })
       .then(() => this.createChart())
       .catch(() => {
-        this.stats = { sales: 0, top: [], hourly: [], first: 0, last: 0 }
+        this.stats = { sales: 0, top: [], hourly: [], first: '', last: '' }
         this.data = false
       })
   }

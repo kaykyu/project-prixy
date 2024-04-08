@@ -98,8 +98,8 @@
                     </form>
                     <button mat-raised-button color="warn"
                         matStepperPrevious><mat-icon>expand_less</mat-icon>Back</button>
-                    <button mat-raised-button (click)="processOrder()"
-                        [disabled]="form.invalid"><mat-icon>credit_card</mat-icon>Make
+                    <button mat-raised-button (click)="paymentOptions()"
+                        [disabled]="form.invalid"><mat-icon>wallet</mat-icon>Make
                         Payment</button>
 
                 </ng-template>
@@ -109,7 +109,7 @@
 </div>
 
 <ng-template #noCart>
-    <div class="center">
+    <div class="middle">
         <img src="https://cdn-icons-png.flaticon.com/512/11329/11329060.png" width="300px">
         <h5>Your cart is empty.</h5>
     </div>
@@ -124,4 +124,11 @@
             <h6>Loading...</h6>
         </div>
     </div>
+</ng-template>
+
+<ng-template #payment>
+<mat-action-list>
+    <button mat-list-item (click)="processOrder(true)">Cash</button>
+    <button mat-list-item (click)="processOrder(false)">Card</button>
+</mat-action-list>
 </ng-template>

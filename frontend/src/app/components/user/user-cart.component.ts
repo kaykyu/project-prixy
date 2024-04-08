@@ -1,12 +1,13 @@
-import { Component, Input, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { UserStoreService } from '../../service/user-store.service';
 import { Subscription, tap } from 'rxjs';
 import { Order, OrderRequest, Tax, User } from '../../models';
 import { UserService } from '../../service/user.service';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { environment } from '../../../environments/environment';
-import { ActivatedRoute } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { StepperSelectionEvent } from '@angular/cdk/stepper';
+import { MatBottomSheet } from '@angular/material/bottom-sheet';
 
 @Component({
   selector: 'app-user-cart',
@@ -19,8 +20,11 @@ export class UserCartComponent implements OnInit, OnDestroy {
   private userStore: UserStoreService = inject(UserStoreService)
   private userSvc: UserService = inject(UserService)
   private fb: FormBuilder = inject(FormBuilder)
+  private btmSheet: MatBottomSheet = inject(MatBottomSheet)
+  private router: Router = inject(Router)
 
   @Input() user!: User
+  @ViewChild('payment') payment!: TemplateRef<any>
   form!: FormGroup
   cart$!: Subscription
   cart: Order[] = []
@@ -46,7 +50,7 @@ export class UserCartComponent implements OnInit, OnDestroy {
           this.sum *= 1 + (this.gstAmount / 100)
       })
       .then(() => this.initDone = true)
-      .catch((err) => console.error(err))
+      .catch(err => console.error(err))
   }
 
   ngOnDestroy(): void {
@@ -74,8 +78,14 @@ export class UserCartComponent implements OnInit, OnDestroy {
     }
   }
 
-  processOrder() {
+  paymentOptions() {
     localStorage.setItem(this.user.sub, JSON.stringify(this.cart))
+
+    this.btmSheet.open(this.payment)
+  }
+
+  processOrder(pending: boolean) {
+    this.btmSheet.dismiss()
 
     const req: OrderRequest = {
       client: this.user.sub,
@@ -86,7 +96,8 @@ export class UserCartComponent implements OnInit, OnDestroy {
       comments: this.form.value.comments,
       token: this.ar.snapshot.parent?.params['token']
     }
-    this.userSvc.makeOrder(req)
+
+    this.userSvc.makeOrder(req, pending)
   }
 }
 

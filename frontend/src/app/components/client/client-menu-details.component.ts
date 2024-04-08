@@ -5,6 +5,7 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { Menu, MenuCategory } from '../../models';
 import { ImageCroppedEvent, base64ToFile } from 'ngx-image-cropper';
 import { Subscription } from 'rxjs';
+import { LoadingComponent } from '../loading.component';
 
 @Component({
   selector: 'app-client-menu-details',
@@ -21,6 +22,7 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
 
   @ViewChild('cropper') cropper!: TemplateRef<any>
   @ViewChild('image') imageFile!: ElementRef
+  @ViewChild('loading') loading!: TemplateRef<any>
   dialog$!: Subscription
   form!: FormGroup
   selectedFile: any = null
@@ -61,6 +63,12 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
     })
   }
 
+  hasImage(): boolean {
+    if (!this.add)
+      return this.menu.image !== 'https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/menu-placeholder.png'
+    return false
+  }
+
   process() {
     const formData = new FormData
     formData.set("name", this.form.value.name)
@@ -69,15 +77,19 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
     formData.set("image", this.croppedImage)
     formData.set("category", this.form.value.category)
 
+    const load = this.dialog.open(this.loading)
+
     if (!this.add) {
       formData.set("id", this.menu.id)
       this.clientSvc.putMenu(formData)
         .then(() => this.success(this.form.value.name))
         .catch(() => alert('Something went wrong.'))
+        .finally(() => load.close())
     } else
       this.clientSvc.postMenu(formData)
         .then(() => this.success(this.form.value.name))
         .catch(() => alert('Something went wrong.'))
+        .finally(() => load.close())
   }
 
   imageCropped(event: ImageCroppedEvent) {

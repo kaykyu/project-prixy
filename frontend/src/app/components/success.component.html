@@ -1,0 +1,69 @@
+<div class="user">
+    <div *ngIf="details" class="center">
+
+        <div>
+            <div class="header">
+                <h1>Thank you for ordering at {{details.name}}</h1>
+                <h5>{{details.date | date: 'h:mm a, dd MMM yy' : 'Asia/Singapore'}}</h5>
+            </div>
+
+            <mat-card>
+                <mat-card-header class="middle">
+                    <mat-card-title>
+                        {{details.pending ?
+                        'Your order is pending payment. Please proceed to the counter to make payment.' :
+                        'Your order has been sent to the kitchen.'}}
+                    </mat-card-title>
+                    <mat-card-title class="amount">
+                        {{details.pending ? 'Amount due:' : 'Paid'}} {{details.amount | currency}}
+                    </mat-card-title>
+                    <mat-card-subtitle>
+                        Order ID: #{{id | uppercase}}
+                        <span><button mat-icon-button [cdkCopyToClipboard]="id"
+                                (click)="copied()"><mat-icon>content_copy</mat-icon></button></span>
+                    </mat-card-subtitle>
+                </mat-card-header>
+
+                <mat-card-content>
+                    <table mat-table [dataSource]="details.orders">
+                        <ng-container matColumnDef="table">
+                            <th mat-header-cell *matHeaderCellDef colspan="2"> Table {{details.table | uppercase}}</th>
+                        </ng-container>
+
+                        <ng-container matColumnDef="item">
+                            <th mat-header-cell *matHeaderCellDef> Item </th>
+                            <td mat-cell *matCellDef="let o"> {{o.name}} </td>
+                        </ng-container>
+
+                        <ng-container matColumnDef="quantity">
+                            <th mat-header-cell *matHeaderCellDef> Quantity </th>
+                            <td mat-cell *matCellDef="let o"> {{o.quantity}} </td>
+                        </ng-container>
+
+
+                        <ng-container matColumnDef="comments">
+                            <td mat-footer-cell *matFooterCellDef colspan="2" class="comments">Comments:
+                                {{details.comments}}</td>
+                        </ng-container>
+
+                        <tr mat-header-row *matHeaderRowDef="['table']"></tr>
+                        <tr mat-header-row *matHeaderRowDef="tableCols"></tr>
+                        <tr mat-row *matRowDef="let row; columns: tableCols"></tr>
+                        <tr mat-footer-row *matFooterRowDef="['comments']" [hidden]="details.comments.length == 0"></tr>
+                    </table>
+                </mat-card-content>
+
+                <mat-card-actions class="middle">
+                    <button *ngIf="id.endsWith('s')" mat-raised-button color="accent"
+                        (click)="sendReceipt()"><mat-icon>mail</mat-icon>Send
+                        receipt to Email</button>
+                    <a class="link" mat-raised-button href="https://t.me/PrixywebBot"><mat-icon>message</mat-icon>Check
+                        order progress</a>
+                </mat-card-actions>
+            </mat-card>
+
+            <div class="footer">Powered by Prixy</div>
+
+        </div>
+    </div>
+</div>

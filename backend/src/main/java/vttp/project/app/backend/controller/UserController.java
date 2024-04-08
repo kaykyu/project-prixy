@@ -8,13 +8,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 
 import jakarta.json.Json;
-import jakarta.json.JsonArray;
 import jakarta.json.JsonObject;
 import vttp.project.app.backend.model.OrderRequest;
 import vttp.project.app.backend.service.UserService;
@@ -46,10 +46,16 @@ public class UserController {
     }
 
     @PostMapping(path = "/order")
-    public ResponseEntity<String> postOrder(@RequestBody OrderRequest request) {
+    public ResponseEntity<String> postOrder(@RequestBody OrderRequest request, @RequestParam Boolean pending) {
         try {
-            return ResponseEntity.ok()
-                    .body(userSvc.newOrder(request).toString());
+            if (pending) {
+                JsonObject result = userSvc.newPendingOrder(request);
+                if (result.isEmpty())
+                    return ResponseEntity.internalServerError().build();
+                return ResponseEntity.ok(result.toString());
+
+            } else
+                return ResponseEntity.ok().body(userSvc.newStripeOrder(request).toString());
 
         } catch (StripeException e) {
             return ResponseEntity.internalServerError()
@@ -79,10 +85,10 @@ public class UserController {
     }
 
     @GetMapping(path = "/orders/{id}")
-    public ResponseEntity<String> getOrders(@PathVariable String id) {
-
-        JsonArray result = userSvc.getOrders(id);
-        if (result.size() < 1)
+    public ResponseEntity<String> getPostedOrders(@PathVariable String id) {
+        
+        JsonObject result = userSvc.getPostedOrders(id);
+        if (result.isEmpty())
             return ResponseEntity.notFound().build();
         return ResponseEntity.ok(result.toString());
     }

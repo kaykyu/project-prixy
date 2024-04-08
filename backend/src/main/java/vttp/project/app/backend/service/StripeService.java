@@ -23,10 +23,8 @@ import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import vttp.project.app.backend.model.Menu;
 import vttp.project.app.backend.model.Order;
-import vttp.project.app.backend.model.OrderEdit;
 import vttp.project.app.backend.model.OrderRequest;
 import vttp.project.app.backend.model.Tax;
-import vttp.project.app.backend.repository.StatsRepository;
 import vttp.project.app.backend.repository.UserRepository;
 
 @Service
@@ -50,9 +48,6 @@ public class StripeService {
     @Autowired
     private EmailService emailSvc;
 
-    @Autowired
-    private StatsRepository statsRepo;
-
     public JsonObject getKey() {
         return Json.createObjectBuilder().add("key", stripePublic).build();
     }
@@ -73,16 +68,6 @@ public class StripeService {
                         .setUnitAmount(getLongAmount(price))
                         .build())
                 .build());
-    }
-
-    public Double applyTax(String id, Double amount) {
-
-        Tax tax = userRepo.getTaxes(id);
-        if (tax.getSvc() != 0)
-            amount *= 100 + tax.getSvc();
-        if (tax.getGst())
-            amount *= 100 + gst;
-        return amount / 10000;
     }
 
     public Builder applyTax(Builder builder, String id, Double amount) {
@@ -118,7 +103,7 @@ public class StripeService {
         }
 
         builder = applyTax(builder, request.getClient(), total);
-        builder.putAllMetadata(request.toMetadata(total));
+        builder.putAllMetadata(request.toMetadata());
         return Session.create(builder.build()).getId();
     }
 
@@ -142,6 +127,7 @@ public class StripeService {
                 Session session = (Session) stripe;
                 OrderRequest request = OrderRequest.fromMap(session.getMetadata());
                 request.setPaymentId(session.getPaymentIntent());
+                request.setAmount(session.getAmountTotal().doubleValue() / 100);
                 return request;
 
             case ("charge.refunded"):
@@ -149,11 +135,7 @@ public class StripeService {
                 Charge refund = (Charge) stripe;
 
                 try {
-                    String email = userRepo.getEmail(refund.getPaymentIntent());
-                    if (email == null)
-                        email = statsRepo.getEmail(refund.getPaymentIntent()).getString("receipt");
-                    emailSvc.sendReceipt(email, refund.getReceiptUrl());
-
+                    emailSvc.sendReceipt(refund.getBillingDetails().getEmail(), refund.getReceiptUrl());
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -166,14 +148,11 @@ public class StripeService {
         return null;
     }
 
-    public void createRefund(String id, OrderEdit edit) throws StripeException {
-
-        Menu menu = userRepo.getMenu(edit.getItem());
-        Double amount = applyTax(id, menu.getPrice() * (edit.getOld() - edit.getQuantity()));
+    public void createRefund(String charge, Double amount) throws StripeException {
 
         Stripe.apiKey = stripeSecret;
         RefundCreateParams params = RefundCreateParams.builder()
-                .setCharge(userRepo.getChargeId(edit.getId()))
+                .setCharge(charge)
                 .setAmount(getLongAmount(amount))
                 .build();
         Refund.create(params);

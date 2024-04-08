@@ -7,7 +7,7 @@ import { UserMainComponent } from './components/user/user-main.component';
 import { UserCartComponent } from './components/user/user-cart.component';
 import { ErrorComponent } from './components/error.component';
 import { UserMenuComponent } from './components/user/user-menu.component';
-import { UserSuccessComponent } from './components/user/user-success.component';
+import { SuccessComponent } from './components/success.component';
 import { LoadingComponent } from './components/loading.component';
 import { HomeComponent } from './components/home.component';
 import { ClientKitchenComponent } from './components/client/client-kitchen.component';
@@ -30,16 +30,16 @@ const routes: Routes = [
   {
     path: 'order/:token', component: UserMainComponent, canActivate: [isTokenValid], children: [
       { path: 'cart', component: UserCartComponent },
-      { path: 'success/:id', component: UserSuccessComponent },
       { path: 'menu', component: UserMenuComponent },
       { path: '', component: UserTitleComponent },
       { path: '**', redirectTo: '', pathMatch: 'full' }
     ]
   },
+  { path: 'success/:id', component: SuccessComponent },
   { path: 'error', component: ErrorComponent },
   { path: 'loading', component: LoadingComponent },
   { path: '', component: HomeComponent },
-  { path: '**', redirectTo: '', pathMatch: 'full' }
+  { path: '**', redirectTo: 'error', pathMatch: 'full' }
 ];
 
 @NgModule({

@@ -1,0 +1,45 @@
+<h2 mat-dialog-title>Receipt</h2>
+
+<mat-dialog-content>
+    <div #print>
+        <h2>{{data.name}}</h2>
+        <h6>{{data.order.date | date: 'h:mm a, dd MMM yy': 'Asia/Singapore'}}</h6>
+        <h6>Table {{data.order.table}}</h6>
+
+        <table style="width: 100%">
+            <tr>
+                <td>Qty</td>
+                <td>Desc</td>
+                <td>Amt</td>
+            </tr>
+            <tr>
+                <td colspan="3">
+                    <hr>
+                </td>
+            </tr>
+            <tr *ngFor="let item of filter(data.items)">
+                <td>{{item.quantity}}</td>
+                <td>{{item.name}}</td>
+                <td>{{item.amount | currency}}</td>
+            </tr>
+            <tr *ngIf="getSvc(data.items)">
+                <td></td>
+                <td>Service charge</td>
+                <td>{{getSvc(data.items)?.amount | currency}}
+                <td>
+            </tr>
+            <tr *ngIf="getGst(data.items)">
+                <td></td>
+                <td>GST</td>
+                <td>{{getGst(data.items)?.amount | currency}}
+                <td>
+            </tr>
+        </table>
+        <hr>
+        <h5 style="text-align: right;">Amount: {{amount | currency}}</h5>
+    </div>
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-raised-button mat-dialog-close><mat-icon>cancel</mat-icon>Close</button>
+    <button mat-raised-button color="accent" (click)="paymentDone()"><mat-icon>done</mat-icon>Payment Received</button>
+</mat-dialog-actions>

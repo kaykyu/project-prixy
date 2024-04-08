@@ -6,6 +6,7 @@ import { SocketService } from '../../service/socket.service';
 import { MatDialog } from '@angular/material/dialog';
 import { Socket } from 'socket.io-client';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
+import { ReceiptComponent } from '../receipt.component';
 
 @Component({
   selector: 'app-client-kitchen',
@@ -21,11 +22,13 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
   @Input() client!: Client
   orders$!: Observable<KitchenOrder[]>
+  pending: KitchenOrder[] = []
   socketSub!: Subscription
-  kitchenStatus!: boolean
+  receiptSub!: Subscription
   tableCols: string[] = ['name', 'quantity', 'action']
-  @ViewChild('print') doc!: ElementRef
+  @ViewChild('print') qrReceipt!: ElementRef
   @ViewChild('link') qrTemplate!: TemplateRef<any>
+  @ViewChild('pendingOrders') pendingOrders!: TemplateRef<any>
   qrCode: string = ''
   timestamp: number = 0
   orderUrl: string = ''
@@ -35,7 +38,6 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    this.kitchenStatus = this.client.status
     this.orders$ = this.clientSvc.getKitchenOrders()
     this.socketSvc.onConnect(this.client.id)
       .then(() => {
@@ -48,6 +50,8 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.socketSub.unsubscribe()
     this.socketSvc.ws.close()
+    if (!!this.receiptSub)
+      this.receiptSub.unsubscribe()
   }
 
   newOrder() {
@@ -74,6 +78,29 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     }
   }
 
+  filterOrders(orders: KitchenOrder[]) {
+    this.pending = orders.filter(value => value.status == 'PENDING')
+    return orders.filter(value => value.status != 'PENDING')
+  }
+
+  viewPendingOrders() {
+    this.dialog.open(this.pendingOrders)
+  }
+
+  bill(order: KitchenOrder) {
+    this.clientSvc.getLineItems(order.id)
+      .then(value => this.receiptSub = this.dialog.open(ReceiptComponent, { data: { order: order, name: this.client.estName, items: value } })
+        .afterClosed()
+        .subscribe({
+          next: (value) => {
+            if (value !== '')
+              this.orders$ = this.clientSvc.getKitchenOrders()
+            if (typeof value == 'object')
+              this.printLink(value)
+          }
+        }))
+  }
+
   getProgress(order: KitchenOrder, count: number): number {
     order.orders.filter(value => value.completed == true).forEach(() => count += 1)
     return count / order.orders.length * 100
@@ -93,7 +120,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
           item.completed = true
           order.progress = progress
         })
-        .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+        .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   editItem(order: string, item: Order) {
@@ -110,8 +137,10 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
             old: item.quantity,
             quantity: this.form.value.quantity
           })
-            .then(() => {
-              alert(`${item.name} has been changed to ${this.form.value.quantity}`)
+            .then(value => {
+              if (value.refund !== '0.0')
+                alert(`Refund of $${value.refund}`)
+              this.clientSvc.openSnackBar(`${item.name} has been changed to ${this.form.value.quantity}`)
               item.quantity = this.form.value.quantity
             })
             .catch(() => alert('Something went wrong'))
@@ -122,30 +151,39 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   deleteItem(order: KitchenOrder, i: number) {
     const item = order.orders.splice(i, 1)
     const progress = this.getProgress(order, 0)
-      this.clientSvc.deleteItem({
-        id: order.id,
-        item: item[0].id,
-        progress: progress,
-        old: item[0].quantity,
-        quantity: 0
+    this.clientSvc.deleteItem({
+      id: order.id,
+      item: item[0].id,
+      progress: progress,
+      old: item[0].quantity,
+      quantity: 0
+    })
+      .then(value => {
+        if (value.refund !== '0.0')
+          alert(`Refund of $${value.refund}`)
+        this.orders$ = this.clientSvc.getKitchenOrders()
+        this.clientSvc.openSnackBar(`${item[0].name} has been removed`)
       })
-        .then(() => {
-          this.orders$ = this.clientSvc.getKitchenOrders()
-          alert(`${item[0].name} has been removed`)
-        })
-        .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   completeOrder(id: string) {
     this.clientSvc.completeOrder(id)
-      .then(() => this.orders$ = this.clientSvc.getKitchenOrders())
-      .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+      .then(() => {
+        this.clientSvc.openSnackBar(`OrderID: #${id.toUpperCase()} completed`)
+        this.orders$ = this.clientSvc.getKitchenOrders()
+      })
+      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   deleteOrder(id: string) {
     this.clientSvc.deleteOrder(id)
-      .then(() => this.orders$ = this.clientSvc.getKitchenOrders())
-      .catch(err => alert(err.error.error ? err.error.error : 'Something went wrong'))
+      .then(value => {
+        if (value.refund !== '0.0')
+          alert(`Refund of $${value.refund}`)
+        this.orders$ = this.clientSvc.getKitchenOrders()
+      })  
+      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
   }
 
   getQR(link: string) {
@@ -173,8 +211,8 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     })
   }
 
-  printLink() {
-    const toPrint = this.doc.nativeElement.innerHTML
+  printLink(template: ElementRef) {
+    const toPrint = template.nativeElement.innerHTML
     const w = window.open()
     if (w) {
       w.document.write(toPrint)

@@ -46,7 +46,7 @@ public class ClientController {
 
     @PutMapping(path = "/email")
     public ResponseEntity<String> putEmail(@RequestHeader("Authorization") String token, @RequestBody String email) {
-        
+
         JsonObject result = clientSvc.putEmail(token, email);
         if (result.isEmpty())
             return ResponseEntity.ok(email);
@@ -85,6 +85,13 @@ public class ClientController {
         return ResponseEntity.internalServerError().build();
     }
 
+    @DeleteMapping(path = "/menu/{id}/image")
+    public ResponseEntity<Void> deleteMenuImage(@PathVariable String id) {
+        if (clientSvc.deleteMenuImage(id))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.internalServerError().build();
+    }
+
     @DeleteMapping(path = "/menu/{id}")
     public ResponseEntity<Void> deleteMenu(@PathVariable String id) {
         if (clientSvc.deleteMenu(id))
@@ -103,6 +110,18 @@ public class ClientController {
         return ResponseEntity.ok(clientSvc.getOrderLink(token, table).toString());
     }
 
+    @GetMapping(path = "/bill")
+    public ResponseEntity<String> getBill(@RequestParam String order) {
+        return ResponseEntity.ok(clientSvc.getBill(order).toString());
+    }
+
+    @PostMapping(path = "/payment")
+    public ResponseEntity<Void> postPayment(@RequestBody String order) {
+        if (clientSvc.postPayment(order))
+            return ResponseEntity.ok().build();
+        return ResponseEntity.internalServerError().build();
+    }
+
     @PostMapping(path = "/order/item")
     public ResponseEntity<String> completeItem(@RequestBody OrderEdit edit) {
         try {
@@ -115,18 +134,22 @@ public class ClientController {
     }
 
     @PutMapping(path = "/order/item")
-    public ResponseEntity<Void> putItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
-        if (clientSvc.editItem(token, edit))
-            return ResponseEntity.ok().build();
-        return ResponseEntity.internalServerError().build();
+    public ResponseEntity<String> putItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
+        JsonObject result = clientSvc.editItem(token, edit);
+        if (result.isEmpty())
+            return ResponseEntity.internalServerError().build();
+        return ResponseEntity.ok(result.toString());
     }
 
     @PostMapping(path = "/order/item/delete")
-    public ResponseEntity<String> deleteItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
+    public ResponseEntity<String> deleteItem(@RequestHeader("Authorization") String token,
+            @RequestBody OrderEdit edit) {
         try {
-            if (clientSvc.deleteItem(token, edit))
-                return ResponseEntity.ok().build();
-            return ResponseEntity.notFound().build();
+            JsonObject result = clientSvc.deleteItem(token, edit);
+            if (result.isEmpty())
+                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(result.toString());
+
         } catch (SqlOrdersException e) {
             return ResponseEntity.internalServerError().body(e.toJson().toString());
         }
@@ -146,9 +169,11 @@ public class ClientController {
     @PostMapping(path = "/order/delete")
     public ResponseEntity<String> deleteOrder(@RequestBody String id) {
         try {
-            if (clientSvc.removeOrder(id))
-                return ResponseEntity.ok().build();
-            return ResponseEntity.notFound().build();
+            JsonObject result = clientSvc.removeOrder(id);
+            if (result.isEmpty())
+                return ResponseEntity.notFound().build();
+            return ResponseEntity.ok(result.toString());
+            
         } catch (SqlOrdersException e) {
             return ResponseEntity.internalServerError().body(e.toJson().toString());
         }

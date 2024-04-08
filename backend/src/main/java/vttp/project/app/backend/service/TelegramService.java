@@ -37,7 +37,7 @@ public class TelegramService {
 
             Eg. Check ABCD1234
             """;
-    public final String ERROR = "Sorry, I do not understand, please check instructions from /start";
+    public final String ERROR = "Sorry, I don't understand your command :( \nPlease check instructions from /start";
 
     public Boolean handleTeleUpdate(TeleUpdate tele) {
 
@@ -82,14 +82,14 @@ public class TelegramService {
             KitchenOrder result = clientRepo.getProgress(id);
             if (result != null)
                 switch (result.getStatus()) {
+                    case PENDING:
+                        return "Your order is pending for payment. Please proceed to the counter to make payment.";
+                    
                     case RECEIVED:
-                        return "Your order has been received.";
+                        return "The kitchen has received your order and is going to start preparing!";
 
                     case IN_PROGRESS:
-                        return "Your order is in progress (%d".formatted(result.getProgress()) + "%)";
-
-                    case OUT_FOR_DELIVERY:
-                        return "Your order is out for delivery.";
+                        return "Busy cooking up your order! (%d".formatted(result.getProgress()) + "% done)";
                 }
         }
         return null;

@@ -43,8 +43,23 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
       })
   }
 
+  hasImage(menu: Menu): boolean {
+      return menu.image !== 'https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/menu-placeholder.png'
+  }
+
+  removeImage(id: string, name: string) {
+    if (confirm(`Confirm removal of image for ${name}?`))
+      this.clientSvc.deleteMenuImage(id)
+        .then(() => {
+          this.menu$ = this.clientSvc.getMenu()
+          this.clientSvc.getMenuCategory()
+            .then(value => this.categories = value)
+          this.clientSvc.openSnackBar(`${name} image successfully removed`)
+        })
+  }
+
   delete(id: string, name: string) {
-    if (confirm(`Are you want to delete ${name} from the menu?`))
+    if (confirm(`Confirm deletion of ${name} from the menu?`))
       this.clientSvc.deleteMenu(id)
         .then(() => {
           this.menu$ = this.clientSvc.getMenu()

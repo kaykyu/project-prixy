@@ -12,7 +12,7 @@ import { UserMainComponent } from './components/user/user-main.component';
 import { UserCartComponent } from './components/user/user-cart.component';
 import { ErrorComponent } from './components/error.component';
 import { UserMenuComponent } from './components/user/user-menu.component';
-import { UserSuccessComponent } from './components/user/user-success.component';
+import { SuccessComponent } from './components/success.component';
 import { LoadingComponent } from './components/loading.component';
 import { ClientKitchenComponent } from './components/client/client-kitchen.component';
 import { HomeComponent } from './components/home.component';
@@ -25,6 +25,7 @@ import { ImageCropperModule } from 'ngx-image-cropper';
 import { ServiceWorkerModule } from '@angular/service-worker';
 import { ClipboardModule } from '@angular/cdk/clipboard';
 import { UserTitleComponent } from './components/user/user-title.component';
+import { ReceiptComponent } from './components/receipt.component';
 
 @NgModule({
   declarations: [
@@ -36,14 +37,15 @@ import { UserTitleComponent } from './components/user/user-title.component';
     UserCartComponent,
     UserMenuComponent,
     ErrorComponent,
-    UserSuccessComponent,
+    SuccessComponent,
     LoadingComponent,
     ClientKitchenComponent,
     HomeComponent,
     ClientDashboardComponent,
     ClientMenuDetailsComponent,
     ClientAccountComponent,
-    UserTitleComponent
+    UserTitleComponent,
+    ReceiptComponent
   ],
   imports: [
     BrowserModule,

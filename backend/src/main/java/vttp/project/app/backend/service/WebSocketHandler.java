@@ -28,7 +28,7 @@ public class WebSocketHandler extends TextWebSocketHandler {
                     .getString("client");
             logger.info("%s connected".formatted(id));
             clients.put(session, id);
-            
+
         } catch (Exception e) {
             try {
                 session.close(CloseStatus.NOT_ACCEPTABLE);
@@ -52,13 +52,14 @@ public class WebSocketHandler extends TextWebSocketHandler {
     }
 
     public void clientOrderIn(String id) {
-        clients.forEach((key, value) -> {
-            if (value.equals(id))
-                try {
-                    key.sendMessage(new TextMessage(""));
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-        });
+        if (clients != null)
+            clients.forEach((key, value) -> {
+                if (value.equals(id))
+                    try {
+                        key.sendMessage(new TextMessage(""));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+            });
     }
 }
