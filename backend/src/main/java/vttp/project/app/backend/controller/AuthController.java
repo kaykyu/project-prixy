@@ -51,7 +51,9 @@ public class AuthController {
 
     @PostMapping(path = "/login")
     public ResponseEntity<String> postLogin(@RequestBody Login login) {
+
         try {
+            authSvc.loadUserByUsername(login.getEmail());
             Authentication auth = authManager
                     .authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPw()));
             return ResponseEntity.ok(tokenSvc.generateToken(auth).toString());
