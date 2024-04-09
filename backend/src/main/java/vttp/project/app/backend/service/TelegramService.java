@@ -76,8 +76,12 @@ public class TelegramService {
     }
 
     public String checkOrder(TeleUpdate tele) {
+
+        String[] msg = tele.getText().split(" ");
+        if (msg.length < 2)
+            return null;
         
-        String id = tele.getText().split(" ")[1];
+        String id = msg[1];
         if (id.length() == 8) {
             KitchenOrder result = clientRepo.getProgress(id);
             if (result != null)
