@@ -5,7 +5,6 @@ import { MAT_DIALOG_DATA, MatDialog, MatDialogRef } from '@angular/material/dial
 import { Menu, MenuCategory } from '../../models';
 import { ImageCroppedEvent, base64ToFile } from 'ngx-image-cropper';
 import { Subscription } from 'rxjs';
-import { LoadingComponent } from '../loading.component';
 
 @Component({
   selector: 'app-client-menu-details',

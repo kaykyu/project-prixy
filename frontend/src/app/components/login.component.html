@@ -8,20 +8,11 @@
 
         <mat-grid-tile class="purple" *ngIf="!isLogin; else loading">
             <div class="right" *ngIf="!isSignup; else register">
-                <form [formGroup]="form" (submit)="login()">
-                    <div class="top">
-                        <button mat-raised-button color="accent" type="button" (click)="newSignup()">
-                            Sign Up</button>
-                        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Login</button>
-                    </div>
+                <form [formGroup]="form" (submit)="login()" class="form">
                     <p>
                         <mat-form-field>
-                            <mat-label>Email</mat-label>
+                            <mat-label>Email / Username</mat-label>
                             <input matInput type="email" formControlName="email">
-                            @if (form.controls['email'].hasError('email') &&
-                            !form.controls['email'].hasError('required')) {
-                            <mat-error>Please enter a valid email address</mat-error>
-                            }
                             @if (form.controls['email'].hasError('required')) {
                             <mat-error>Email is <strong>required</strong></mat-error>
                             }
@@ -40,6 +31,12 @@
                             }
                         </mat-form-field>
                     </p>
+                    <div>
+                        <button mat-raised-button color="accent" type="button" (click)="newSignup()">
+                            Sign Up</button>
+                        <button mat-raised-button color="primary" type="submit" [disabled]="form.invalid">Login</button>
+                        <button mat-raised-button type="button" (click)="forgotPw()">Forgot Password</button>
+                    </div>
                 </form>
             </div>
         </mat-grid-tile>
@@ -48,11 +45,7 @@
 
 <ng-template #register>
     <div class="right">
-        <form [formGroup]="signupForm" (submit)="signup()">
-            <div class="top">
-                <button mat-raised-button color="accent" type="button" (click)="isSignup = false">Back</button>
-                <button mat-raised-button color="primary" type="submit" [disabled]="signupForm.invalid">Sign Up</button>
-            </div>
+        <form [formGroup]="signupForm" (submit)="signup()" class="form">
             <p>
                 <mat-form-field>
                     <mat-label>Email</mat-label>
@@ -79,50 +72,11 @@
                     }
                 </mat-form-field>
             </p>
-            <p>
-                <mat-form-field>
-                    <mat-label>Password</mat-label>
-                    <input matInput placeholder="Password" formControlName="pw" [type]="hide ? 'password' : 'text'">
-                    <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
-                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
-                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
-                    </button>
-                    @if (signupForm.controls['pw'].hasError('pattern') &&
-                    !signupForm.controls['pw'].hasError('required')) {
-                    <mat-error>Password <strong>does not</strong> fulfil requirements</mat-error>
-                    }
-                    @if (signupForm.controls['pw'].hasError('required')) {
-                    <mat-error>Password is <strong>required</strong></mat-error>
-                    }
-                </mat-form-field>
-            </p>
-            <p>
-                <mat-form-field>
-                    <mat-label>Confirm password</mat-label>
-                    <input matInput placeholder="Please confirm your password" formControlName="pw2"
-                        [type]="hide2 ? 'password' : 'text'">
-                    <button mat-icon-button matSuffix type="button" (click)="hide2 = !hide2"
-                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide2">
-                        <mat-icon>{{hide2 ? 'visibility_off' : 'visibility'}}</mat-icon>
-                    </button>
-                    @if (signupForm.controls['pw2'].hasError('notMatched') &&
-                    !signupForm.controls['pw2'].hasError('required')) {
-                    <mat-error>Passwords entered are <strong>not the same</strong>!</mat-error>
-                    }
-                    @if (signupForm.controls['pw2'].hasError('required')) {
-                    <mat-error>Please <strong>confirm</strong> your password.</mat-error>
-                    }
-                </mat-form-field>
-            </p>
+            <div>
+                <button mat-raised-button color="accent" type="button" (click)="isSignup = false">Back</button>
+                <button mat-raised-button color="primary" type="submit" [disabled]="signupForm.invalid">Sign Up</button>
+            </div>
         </form>
-        <div>
-            Password requirements:
-            <ul>
-                <li>At least 8 characters</li>
-                <li>Must contain at least 1 uppercase letter, 1 lowercase letter and 1 number</li>
-                <li>Can contain special characters</li>
-            </ul>
-        </div>
     </div>
 </ng-template>
 
@@ -135,4 +89,30 @@
             <h6>Signing you in</h6>
         </div>
     </div>
+</ng-template>
+
+<ng-template #email>
+    <h2 mat-dialog-title>Forgot Password</h2>
+    <mat-dialog-content>
+        <form [formGroup]="emailForm">
+            <p>
+                <mat-form-field>
+                    <mat-label>Email</mat-label>
+                    <input matInput placeholder="Account email" type="email" formControlName="email">
+                    @if (emailForm.controls['email'].hasError('email') &&
+                    !emailForm.controls['email'].hasError('required')) {
+                    <mat-error>Please enter a valid email address</mat-error>
+                    }
+                    @if (emailForm.controls['email'].hasError('required')) {
+                    <mat-error>Email is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="center">
+        <button mat-raised-button color="warn" mat-dialog-close>Back</button>
+        <button mat-raised-button color="accent" (click)="resetPw()" [disabled]="emailForm.invalid">Reset
+            Password</button>
+    </mat-dialog-actions>
 </ng-template>

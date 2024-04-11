@@ -14,6 +14,7 @@ import com.auth0.jwt.algorithms.Algorithm;
 import jakarta.json.Json;
 import jakarta.json.JsonObject;
 import vttp.project.app.backend.model.UserPrincipal;
+import vttp.project.app.backend.model.UserRole;
 import vttp.project.app.backend.repository.ClientRepository;
 
 @Service
@@ -28,7 +29,11 @@ public class JwtTokenService {
     public JsonObject generateToken(Authentication auth) {
 
         UserPrincipal client = (UserPrincipal) auth.getPrincipal();
-        String id = clientRepo.getClientId(client.getUsername());
+        String id = client.getUsername();
+
+        if (client.getUser().getRole().equals(UserRole.CLIENT))
+           id = clientRepo.getClientId(client.getUsername());
+        
         Instant now = Instant.now();
         return Json.createObjectBuilder()
                 .add("token", JWT.create()
@@ -37,6 +42,7 @@ public class JwtTokenService {
                         .withSubject(id)
                         .withExpiresAt(now.plus(8, ChronoUnit.HOURS))
                         .withClaim("email", client.getUsername())
+                        .withClaim("role", client.getUser().getRole().toString())
                         .sign(Algorithm.HMAC256(secretKey)))
                 .build();
     }

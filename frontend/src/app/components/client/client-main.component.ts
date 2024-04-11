@@ -1,56 +1,78 @@
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { ClientService } from '../../service/client.service';
-import { Router } from '@angular/router';
-import { Client } from '../../models';
-import { Subscription } from 'rxjs';
+import { Client, Login } from '../../models';
+import { Observable } from 'rxjs';
+import { ClientStoreService } from '../../service/client-store.service';
+import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
+import { MatDialog } from '@angular/material/dialog';
 
 @Component({
   selector: 'app-client-main',
   templateUrl: './client-main.component.html',
   styleUrl: './client-main.component.css'
 })
-export class ClientMainComponent implements OnInit, OnDestroy {
+export class ClientMainComponent implements OnInit {
 
   private clientSvc: ClientService = inject(ClientService)
-  private router: Router = inject(Router)
+  private clientStore: ClientStoreService = inject(ClientStoreService)
+  private fb: FormBuilder = inject(FormBuilder)
+  private dialog: MatDialog = inject(MatDialog)
 
-  client!: Client
-  client$!: Subscription
+  @ViewChild('pw') changePw!: TemplateRef<any>
+  client$!: Observable<Client>
   showNav: boolean = false
   links = NAV_LINKS
+  pwForm!: FormGroup
+  hide: boolean = true
+  hide2: boolean = true
+  hide3: boolean = true
 
   ngOnInit(): void {
-    this.clientSvc.checkAuth()
-      .catch(err => {
-        alert(err)
-        this.router.navigate(['/login'])
+    this.clientInit()
+      .catch(value => {
+        this.formInit()
+        this.dialog.open(this.changePw, { data: value.email })
       })
-      .then(() => this.clientSvc.getClient())
-      .then(value => this.client = value)
-      .catch(err => {
-        console.error(err)
-        alert(`${err.status} error`)
-        this.router.navigate(['/'])
-      })
-    
-    this.client$ = this.clientSvc.client.asObservable().subscribe({
-      next: value => this.client = value
+  }
+
+  async clientInit() {
+    return this.clientSvc.getClient()
+      .then(value => this.clientStore.setState({ client: value }))
+      .then(() => this.client$ = this.clientStore.getClient)
+  }
+
+  formInit() {
+    this.pwForm = this.fb.group({
+      oldPw: this.fb.control<string>('', Validators.required),
+      pw: this.fb.control<string>('', [Validators.required, Validators.pattern(new RegExp('^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$'))]),
+      pw2: this.fb.control<string>('', [Validators.required, c => this.pwMatch(c)]),
     })
   }
 
-  ngOnDestroy(): void {
-      this.client$.unsubscribe()
+  pwMatch: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+    const pw = this.pwForm?.controls['pw'].value
+    const pw2 = this.pwForm?.controls['pw2'].value
+    return pw === pw2 ? null : { notMatched: true }
   }
 
-  onRouting(component: any) {
-    component.client = this.client
-    this.clientSvc.checkAuth()
-      .catch(err => {
-        alert(err)
-        localStorage.removeItem('prixyToken')
-        this.router.navigate(['/login'])
+  pwDone() {
+    const change: Login = {
+      email: '',
+      pw: this.pwForm.value.oldPw,
+      change: this.pwForm.value.pw
+    }
+
+    this.clientSvc.confirmClient(change)
+      .then(value => {
+        localStorage.setItem('prixyToken', value.token)
+        this.pwForm.reset()
+        this.dialog.closeAll()
+        this.clientInit()
+        this.clientSvc.openSnackBar('Password changed successfully.')
       })
+      .catch(err => alert(err.error.error))
   }
+
 
   logout() {
     localStorage.removeItem('prixyToken')

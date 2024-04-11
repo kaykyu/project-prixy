@@ -1,7 +1,7 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Observable, firstValueFrom } from 'rxjs';
-import { Menu, Order, OrderDetails, OrderRequest, Tax, User } from '../models';
+import { firstValueFrom } from 'rxjs';
+import { Menu, OrderDetails, OrderRequest, Tax, User } from '../models';
 import { loadStripe } from '@stripe/stripe-js';
 import { Router } from '@angular/router';
 import { MatSnackBar } from '@angular/material/snack-bar';

@@ -1,4 +1,4 @@
-import { Component, ElementRef, Input, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, ElementRef, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { ClientService } from '../../service/client.service';
 import { Observable, Subscription, firstValueFrom } from 'rxjs';
 import { Client, KitchenOrder, Order } from '../../models';
@@ -7,6 +7,8 @@ import { MatDialog } from '@angular/material/dialog';
 import { Socket } from 'socket.io-client';
 import { FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { ReceiptComponent } from '../receipt.component';
+import { ClientStoreService } from '../../service/client-store.service';
+import { ActivatedRoute } from '@angular/router';
 
 @Component({
   selector: 'app-client-kitchen',
@@ -17,10 +19,14 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
   private clientSvc: ClientService = inject(ClientService)
   private socketSvc: SocketService = inject(SocketService)
+  private clientStore: ClientStoreService = inject(ClientStoreService)
   private dialog: MatDialog = inject(MatDialog)
   private fb: FormBuilder = inject(FormBuilder)
+  private ar: ActivatedRoute = inject(ActivatedRoute)
 
-  @Input() client!: Client
+  clientSub: Subscription = new Subscription
+  routeSub: Subscription = new Subscription
+  client!: Client
   orders$!: Observable<KitchenOrder[]>
   pending: KitchenOrder[] = []
   socketSub!: Subscription
@@ -35,16 +41,28 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   socket!: Socket
   form!: FormGroup
   @ViewChild('edit') editTemplate!: TemplateRef<any>
+  isAdmin: boolean = true
 
 
   ngOnInit(): void {
     this.orders$ = this.clientSvc.getKitchenOrders()
-    this.socketSvc.onConnect(this.client.id)
-      .then(() => {
-        this.socketSub = this.socketSvc.socket.asObservable().subscribe({
-          next: () => this.newOrder()
+    this.clientSub = this.clientStore.getClient.subscribe({
+      next: (value) => {
+        this.client = value
+        this.socketSvc.onConnect(value.id)
+        .then(() => {
+          this.socketSub = this.socketSvc.socket.asObservable().subscribe({
+            next: () => this.newOrder()
+          })
         })
-      })
+      }
+    })
+    this.routeSub = this.ar.data.subscribe({
+      next: (value: any) => {
+        if (value.role === 'KITCHEN')
+          this.isAdmin = false
+      }
+    })
   }
 
   ngOnDestroy(): void {
@@ -52,6 +70,8 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     this.socketSvc.ws.close()
     if (!!this.receiptSub)
       this.receiptSub.unsubscribe()
+    this.clientSub.unsubscribe()
+    this.routeSub.unsubscribe()
   }
 
   newOrder() {
@@ -182,7 +202,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
         if (value.refund !== '0.0')
           alert(`Refund of $${value.refund}`)
         this.orders$ = this.clientSvc.getKitchenOrders()
-      })  
+      })
       .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
   }
 

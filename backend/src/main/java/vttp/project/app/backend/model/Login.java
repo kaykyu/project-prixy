@@ -1,5 +1,7 @@
 package vttp.project.app.backend.model;
 
+import java.io.Serializable;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Pattern;
@@ -11,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class Login {
+public class Login implements Serializable {
     
     @NotEmpty(message = "Email is required")
     @Email(message = "Email must be valid")
@@ -28,8 +30,11 @@ public class Login {
     @Pattern(regexp = "^(?=.*\\\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$", message = "Password must meet requirements")
     private String change;
 
-    public Login(String email, String pw) {
+    private UserRole role;
+
+    public Login(String email, String pw, UserRole role) {
         this.email = email;
         this.pw = pw;
+        this.role = role;
     }
 }

@@ -33,11 +33,13 @@ public class SecurityConfig {
     @Value("${jwt.secret.key}")
     private String secretKey;
 
+    private final String[] ENDPOINTS = { "/api/client/**", "/api/auth/kitchen", "/api/auth/password", "/api/auth/verify" };
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         return http.csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(
-                        auth -> auth.requestMatchers("/api/client/**").authenticated()
+                        auth -> auth.requestMatchers(ENDPOINTS).authenticated()
                                 .anyRequest().permitAll())
                 .userDetailsService(authSvc)
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(Customizer.withDefaults()))

@@ -13,13 +13,13 @@ import { HomeComponent } from './components/home.component';
 import { ClientKitchenComponent } from './components/client/client-kitchen.component';
 import { ClientDashboardComponent } from './components/client/client-dashboard.component';
 import { ClientAccountComponent } from './components/client/client-account.component';
-import { isTokenValid } from './guards';
+import { checkAuth, isLoggedIn, isTokenValid } from './guards';
 import { UserTitleComponent } from './components/user/user-title.component';
 
 const routes: Routes = [
-  { path: 'login', component: LoginComponent },
+  { path: 'login', component: LoginComponent, canActivate: [isLoggedIn] },
   {
-    path: 'main', component: ClientMainComponent, children: [
+    path: 'main', component: ClientMainComponent, canActivateChild: [checkAuth], children: [
       { path: 'menu', component: ClientMenuComponent },
       { path: 'kitchen', component: ClientKitchenComponent },
       { path: 'dash', component: ClientDashboardComponent },

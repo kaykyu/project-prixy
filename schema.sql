@@ -22,7 +22,7 @@ create table menu (
     description text,
     image text,
     price decimal(5,2) not null,   
-    category ENUM('STARTER', 'MAIN', 'DESSERT', 'BEVERAGES', 'OTHERS') not null,
+    category enum('STARTER', 'MAIN', 'DESSERT', 'BEVERAGES', 'OTHERS') not null,
     client_id char(8) not null,
 
     primary key(id),
@@ -40,7 +40,7 @@ create table orders (
     payment_id varchar(32),
     amount decimal(6,2) not null,
     progress int not null default 0,
-    status ENUM('PENDING', 'RECEIVED','IN_PROGRESS') not null,
+    status enum('PENDING', 'RECEIVED','IN_PROGRESS') not null,
 
    primary key(id),
    key (payment_id),

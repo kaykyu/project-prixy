@@ -9,3 +9,7 @@ mat-card {
 .quantity {
     color: slategray;
 }
+
+.main-container {
+    touch-action: pan-y !important;
+}

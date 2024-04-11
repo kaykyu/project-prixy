@@ -16,6 +16,11 @@ public class Client {
     private String estName;
     private Tax tax;
 
+    public Client(String email, String estName) {
+        this.email = email;
+        this.estName = estName;
+    }
+
     public JsonObject toJson() {
         return Json.createObjectBuilder()
                 .add("id", this.id)

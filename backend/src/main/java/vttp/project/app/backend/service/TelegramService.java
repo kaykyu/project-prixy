@@ -39,30 +39,33 @@ public class TelegramService {
             """;
     public final String ERROR = "Sorry, I don't understand your command :( \nPlease check instructions from /start";
 
-    public Boolean handleTeleUpdate(TeleUpdate tele) {
+    public void handleTeleUpdate(TeleUpdate tele) {
 
         logger.info("Received text from >>>" + tele);
-        switch (tele.getText().split(" ")[0].toLowerCase()) {
-            case ("/start"):
-                sendMessage(tele, START);
-                break;
+        try {
+            switch (tele.getText().split(" ")[0].toLowerCase()) {
+                case ("/start"):
+                    sendMessage(tele, START);
+                    break;
 
-            case ("/status"):
-                sendMessage(tele, STATUS);
-                break;
+                case ("/status"):
+                    sendMessage(tele, STATUS);
+                    break;
 
-            case ("check"):
-                String msg = checkOrder(tele);
-                if (msg != null)
-                    sendMessage(tele, msg);
-                else
-                    sendMessage(tele, "OrderID not found \nPlease check that the format is correct");
-                break;
+                case ("check"):
+                    String msg = checkOrder(tele);
+                    if (msg != null)
+                        sendMessage(tele, msg);
+                    else
+                        sendMessage(tele, "OrderID not found \nPlease check that the format is correct");
+                    break;
 
-            default:
-                sendMessage(tele, ERROR);
+                default:
+                    sendMessage(tele, ERROR);
+            }
+        } catch (Exception e) {
+            logger.warning("Unable to process >>>" + tele);
         }
-        return true;
     }
 
     public void sendMessage(TeleUpdate tele, String message) {
@@ -80,7 +83,7 @@ public class TelegramService {
         String[] msg = tele.getText().split(" ");
         if (msg.length < 2)
             return null;
-        
+
         String id = msg[1];
         if (id.length() == 8) {
             KitchenOrder result = clientRepo.getProgress(id);
@@ -88,7 +91,7 @@ public class TelegramService {
                 switch (result.getStatus()) {
                     case PENDING:
                         return "Your order is pending for payment. Please proceed to the counter to make payment.";
-                    
+
                     case RECEIVED:
                         return "The kitchen has received your order and is going to start preparing!";
 

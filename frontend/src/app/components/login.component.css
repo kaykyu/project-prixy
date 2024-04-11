@@ -1,5 +1,5 @@
 mat-form-field {
-    width: 70%;
+    width: 100%;
 }
 
 .purple {
@@ -17,10 +17,11 @@ mat-form-field {
     text-align: left;
 }
 
-.top {
-    margin-bottom: 30px;
+.form {
+    width: 70%;
 }
 
 button {
     margin-right: 10px;
+    margin-top: 10px;
 }

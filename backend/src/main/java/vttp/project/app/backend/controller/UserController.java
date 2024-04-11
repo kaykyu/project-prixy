@@ -6,12 +6,10 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.stripe.exception.SignatureVerificationException;
 import com.stripe.exception.StripeException;
 
 import jakarta.json.Json;
@@ -60,18 +58,6 @@ public class UserController {
         } catch (StripeException e) {
             return ResponseEntity.internalServerError()
                     .body(Json.createObjectBuilder().add("error", e.getMessage()).build().toString());
-        }
-    }
-
-    @PostMapping(path = "/webhook")
-    public ResponseEntity<Void> postWebhook(@RequestBody String payload,
-            @RequestHeader("Stripe-Signature") String sig) {
-        try {
-            userSvc.incomingWebhook(payload, sig);
-            return ResponseEntity.ok().build();
-
-        } catch (SignatureVerificationException e) {
-            return ResponseEntity.badRequest().build();
         }
     }
 

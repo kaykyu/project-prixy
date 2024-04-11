@@ -1,5 +1,5 @@
 import { NgModule, isDevMode } from '@angular/core';
-import { BrowserModule } from '@angular/platform-browser';
+import { BrowserModule, HammerModule } from '@angular/platform-browser';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -60,7 +60,8 @@ import { ReceiptComponent } from './components/receipt.component';
       // or after 30 seconds (whichever comes first).
       registrationStrategy: 'registerWhenStable:30000'
     }),
-    ClipboardModule
+    ClipboardModule,
+    HammerModule
   ],
   providers: [
     provideAnimationsAsync()

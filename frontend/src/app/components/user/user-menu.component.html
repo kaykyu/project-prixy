@@ -1,7 +1,7 @@
 <div *ngIf="menu$ | async as menu; else loading">
-    <mat-tab-group dynamicHeight color="accent">
-        <mat-tab *ngFor="let category of categories$ | async" [label]="category">
-            <div class="main-container" *ngFor="let m of filter(menu, category)">
+    <mat-tab-group dynamicHeight color="accent" [(selectedIndex)]="selectedTab">
+        <mat-tab *ngFor="let category of categories$ | async; let i = index" [label]="category">
+            <div class="main-container" *ngFor="let m of filter(menu, category)" (swipeleft)="swipe('left')" (swiperight)="swipe('right')">
                 <mat-card>
                     <mat-card-header>
                         <mat-card-title>{{m.name}}</mat-card-title>

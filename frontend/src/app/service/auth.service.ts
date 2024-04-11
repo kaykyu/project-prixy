@@ -1,7 +1,7 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { firstValueFrom } from 'rxjs';
-import { Login } from '../models';
+import { Auth, Login } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -9,6 +9,23 @@ import { Login } from '../models';
 export class AuthService {
 
   private http: HttpClient = inject(HttpClient)
+
+  checkAuth(): Promise<Auth> {
+    return new Promise((resolve, reject) => {
+      const token = localStorage.getItem('prixyToken')
+      if (!token)
+        reject()
+      else {
+        const auth: Auth = JSON.parse(atob(token.split('.')[1]))
+        if (auth.exp < Date.now() / 1000) {
+          alert('Session has expired')
+          reject()
+        } else if (auth.iss !== 'Prixy')
+          reject()
+        resolve(auth)
+      }
+    })
+  }
 
   signup(login: Login): Promise<any> {
     login.email = login.email.toLowerCase()
@@ -20,7 +37,8 @@ export class AuthService {
     return firstValueFrom(this.http.post<any>('/api/auth/login', login))
   }
 
-  putPassword(change: Login): Promise<any> {
-    return firstValueFrom(this.http.put('/api/auth/password', change))
+  resetPw(email: string): Promise<any> {
+    const param = new HttpParams().set('email', email.toLowerCase())
+    return firstValueFrom(this.http.get('/api/auth/reset', { params: param }))
   }
 }

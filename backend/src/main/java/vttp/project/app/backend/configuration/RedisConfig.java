@@ -10,6 +10,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 import vttp.project.app.backend.model.LineItem;
+import vttp.project.app.backend.model.Login;
 
 @Configuration
 public class RedisConfig {
@@ -52,13 +53,12 @@ public class RedisConfig {
     }
 
     @Bean
-    public RedisTemplate<String, String> redisUsers() {
+    public RedisTemplate<String, Login> redisUsers() {
 
-        RedisTemplate<String, String> template = new RedisTemplate<>();
+        RedisTemplate<String, Login> template = new RedisTemplate<>();
         template.setConnectionFactory(createConnectionFactory(redisUsersDatabase));
 
         template.setKeySerializer(new StringRedisSerializer());
-        template.setValueSerializer(new StringRedisSerializer());
         return template;
     }
 

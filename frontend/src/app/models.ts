@@ -9,6 +9,7 @@ export interface Auth {
     sub: string
     email: string
     exp: number
+    role: string
 }
 
 export interface Client {
@@ -16,6 +17,10 @@ export interface Client {
     email: string
     estName: string
     tax: Tax
+}
+
+export interface ClientSlice {
+    client: Client
 }
 
 export interface Tax {

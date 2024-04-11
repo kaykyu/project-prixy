@@ -1,5 +1,7 @@
 package vttp.project.app.backend.repository;
 
+import java.time.Duration;
+
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 
@@ -10,14 +12,14 @@ import vttp.project.app.backend.model.Login;
 public class AuthRepository {
     
     @Resource(name = "redisUsers")
-    private ValueOperations<String, String> userValueOps;
+    private ValueOperations<String, Login> userValueOps;
 
     public void signup(Login login) {
-        userValueOps.set(login.getEmail(), login.getPw());
+        userValueOps.set(login.getEmail(), login, Duration.ofHours(24));
     }
 
     public Login getLogin(String email) {
-        return new Login(email, userValueOps.get(email));
+        return userValueOps.get(email);
     }
 
     public Boolean userExist(String email) {
@@ -25,6 +27,8 @@ public class AuthRepository {
     }
 
     public void putPassword(String email, String newPw) {
-        userValueOps.set(email, newPw);
+        Login login = userValueOps.get(email);
+        login.setPw(newPw);
+        userValueOps.set(email, login);
     }
 }

@@ -33,7 +33,7 @@
                                 (click)="changeEmail = !changeEmail"><mat-icon>email</mat-icon>Change
                                 Email</button>
                             <button mat-raised-button color="accent"
-                                (click)="changePw()"><mat-icon>password</mat-icon>Change
+                                (click)="changePw('account')"><mat-icon>password</mat-icon>Change
                                 password</button>
                         </div>
 
@@ -53,6 +53,16 @@
 
     <form [formGroup]="form">
         <table class="table table-hover">
+            <thead>
+                <tr *ngIf="!!kitchen; else noKitchen">
+                    <th>Kitchen Account</th>
+                    <td>Username: {{kitchen}}</td>
+                    <td><button mat-raised-button color="accent"
+                            (click)="changePw('kitchen')"><mat-icon>password</mat-icon>Change
+                            Kitchen password</button>
+                    </td>
+                </tr>
+            </thead>
             <tbody>
                 <tr>
                     <th>Establishment Name</th>
@@ -193,4 +203,14 @@
         <button mat-raised-button color="accent" (click)="pwDone()"
             [disabled]="pwForm.invalid"><mat-icon>done</mat-icon>Done</button>
     </mat-dialog-actions>
+</ng-template>
+
+<ng-template #noKitchen>
+    <tr>
+        <th>Kitchen Account</th>
+        <td>Not created</td>
+        <td><button mat-raised-button (click)="createKitchenAccount()"><mat-icon>password</mat-icon>Create Kitchen
+                Account</button>
+        </td>
+    </tr>
 </ng-template>

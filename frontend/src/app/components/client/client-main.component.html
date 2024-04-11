@@ -1,4 +1,4 @@
-<div *ngIf="client; else loading" class="client">
+<div *ngIf="client$ | async as client; else loading" class="client">
     <mat-toolbar class="topnav">
         <span>{{client.estName| titlecase}}</span>
 
@@ -12,7 +12,7 @@
     </mat-toolbar>
 
     <div class="container">
-        <router-outlet (activate)="onRouting($event)"></router-outlet>
+        <router-outlet></router-outlet>
     </div>
 </div>
 
@@ -25,4 +25,83 @@
             <h6>Loading...</h6>
         </div>
     </div>
+</ng-template>
+
+<ng-template #pw>
+    <h2 mat-dialog-title>Change Default Password</h2>
+    <mat-dialog-content>
+        <form [formGroup]="pwForm">
+            <p>
+                <mat-form-field>
+                    <mat-label>Current Password</mat-label>
+                    <input matInput placeholder="Current Password" formControlName="oldPw"
+                        [type]="hide ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw'].hasError('pattern') &&
+                    !pwForm.controls['pw'].hasError('required')) {
+                    <mat-error
+                        matTooltip="At least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter and 1 number, can contain special characters">
+                        Password <strong>does not</strong> fulfil requirements</mat-error>
+                    }
+                    @if (pwForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>New Password</mat-label>
+                    <input matInput placeholder="New Password" formControlName="pw"
+                        [type]="hide2 ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide2 = !hide2"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide2">
+                        <mat-icon>{{hide2 ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw'].hasError('pattern') &&
+                    !pwForm.controls['pw'].hasError('required')) {
+                    <mat-error
+                        matTooltip="At least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter and 1 number, can contain special characters">
+                        Password <strong>does not</strong> fulfil requirements</mat-error>
+                    }
+                    @if (pwForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <p>
+                <mat-form-field>
+                    <mat-label>Confirm new password</mat-label>
+                    <input matInput placeholder="Please confirm your password" formControlName="pw2"
+                        [type]="hide3 ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide3 = !hide3"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide3">
+                        <mat-icon>{{hide3 ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (pwForm.controls['pw2'].hasError('notMatched') &&
+                    !pwForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Passwords entered are <strong>not the same</strong>!</mat-error>
+                    }
+                    @if (pwForm.controls['pw2'].hasError('required')) {
+                    <mat-error>Please <strong>confirm</strong> your password.</mat-error>
+                    }
+                </mat-form-field>
+            </p>
+            <div>
+                Password requirements:
+                <ul>
+                    <li>At least 8 characters</li>
+                    <li>Must contain at least 1 uppercase letter, 1 lowercase letter and 1 number</li>
+                    <li>Can contain special characters</li>
+                </ul>
+            </div>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="center">
+        <button mat-raised-button color="warn" mat-dialog-close><mat-icon>close</mat-icon>Cancel</button>
+        <button mat-raised-button color="accent" (click)="pwDone()"
+            [disabled]="pwForm.invalid"><mat-icon>done</mat-icon>Done</button>
+    </mat-dialog-actions>
 </ng-template>

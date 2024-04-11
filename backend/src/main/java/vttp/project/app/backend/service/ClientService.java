@@ -65,6 +65,10 @@ public class ClientService {
         return decoder.decode(token.split(" ")[1]).getSubject();
     }
 
+    public String getEmail(String token) {
+        return decoder.decode(token.split(" ")[1]).getClaimAsString("email");
+    }
+
     public JsonObject getClient(String token) {
         return clientRepo.getClient(getId(token)).toJson();
     }
@@ -121,7 +125,6 @@ public class ClientService {
     }
 
     public Boolean deleteMenuImage(String id) {
-        s3Repo.deleteImage(id);
         return clientRepo.putMenuImage(id, null);
     } 
 
@@ -271,7 +274,6 @@ public class ClientService {
         try {
             return statsRepo.getAll(getId(token), q).toJson();
         } catch (Exception e) {
-            e.printStackTrace();
             return null;
         }
     }

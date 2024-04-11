@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import { Auth, Client, KitchenOrder, LineItem, Menu, OrderEdit, Stats } from '../models';
-import { Observable, Subject, firstValueFrom } from 'rxjs';
+import { Client, KitchenOrder, LineItem, Login, Menu, OrderEdit, Stats } from '../models';
+import { Observable, firstValueFrom } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
@@ -12,30 +12,16 @@ export class ClientService {
   private http: HttpClient = inject(HttpClient)
   private snackBar: MatSnackBar = inject(MatSnackBar)
 
-  client: Subject<Client> = new Subject<Client>()
-
-  checkAuth(): Promise<Auth> {
-    return new Promise((resolve, reject) => {
-      const token = localStorage.getItem('prixyToken')
-      if (!token) {
-        reject('No token found.')
-      } else {
-        const auth: Auth = JSON.parse(atob(token.split('.')[1]))
-        if (auth.exp < Date.now() / 1000)
-          reject('Token has expired.')
-        else if (auth.iss !== 'Prixy')
-          reject('Token is invalid')
-        resolve(auth)
-      }
-    })
-  }
-
   headers(): HttpHeaders {
     return new HttpHeaders().set('Authorization', `Bearer ${localStorage.getItem('prixyToken')}`)
   }
 
   openSnackBar(message: string) {
     this.snackBar.open(message, undefined, { duration: 1000 })
+  }
+
+  confirmClient(change: Login): Promise<any> {
+    return firstValueFrom(this.http.post('/api/auth/verify', change, { headers: this.headers() }))
   }
 
   getClient(): Promise<Client> {
@@ -48,6 +34,18 @@ export class ClientService {
 
   putClient(client: any): Promise<Client> {
     return firstValueFrom(this.http.put<Client>('/api/client', client, { headers: this.headers() }))
+  }
+
+  putPassword(change: Login): Promise<any> {
+    return firstValueFrom(this.http.put('/api/auth/password', change, { headers: this.headers() }))
+  }
+
+  getKitchen(): Promise<any> {
+    return firstValueFrom(this.http.get('/api/auth/kitchen', { headers: this.headers() }))
+  }
+
+  postKitchen(): Promise<any> {
+    return firstValueFrom(this.http.post('/api/auth/kitchen', {}, { headers: this.headers() }))
   }
 
   getMenu(): Observable<Menu[]> {

@@ -1,20 +1,23 @@
-import { Component, Input, OnInit } from '@angular/core';
+import { Component, OnDestroy, OnInit } from '@angular/core';
 import { ClientService } from '../../service/client.service';
 import { Chart, registerables } from 'chart.js';
 import { Client, Stats } from '../../models';
+import { Subscription } from 'rxjs';
+import { ClientStoreService } from '../../service/client-store.service';
 
 @Component({
   selector: 'app-client-dashboard',
   templateUrl: './client-dashboard.component.html',
   styleUrl: './client-dashboard.component.css'
 })
-export class ClientDashboardComponent implements OnInit {
+export class ClientDashboardComponent implements OnInit, OnDestroy {
 
-  constructor(private clientSvc: ClientService) {
+  constructor(private clientSvc: ClientService, private clientStore: ClientStoreService) {
     Chart.register(...registerables)
   }
 
-  @Input() client!: Client
+  client!: Client
+  clientSub: Subscription = new Subscription
   default: number = 30
   options = options
   data!: boolean
@@ -23,6 +26,13 @@ export class ClientDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.getStats()
+    this.clientSub = this.clientStore.getClient.subscribe({
+      next: (value) => this.client = value
+    })
+  }
+
+  ngOnDestroy(): void {
+      this.clientSub.unsubscribe()
   }
 
   download() {

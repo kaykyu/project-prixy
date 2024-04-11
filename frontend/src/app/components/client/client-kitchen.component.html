@@ -9,7 +9,7 @@
             <div class="inner">
                 <button mat-raised-button [matBadge]="pending.length" [matBadgeHidden]="pending.length == 0"
                     matBadgeColor="accent" (click)="viewPendingOrders()"
-                    [disabled]="pending.length == 0"><mat-icon>payments</mat-icon>
+                    [disabled]="pending.length == 0 || !isAdmin"><mat-icon>payments</mat-icon>
                     Pending payment</button>
             </div>
             <div></div>
@@ -47,9 +47,9 @@
                                 <button mat-icon-button [hidden]="item.completed"
                                     [matMenuTriggerFor]="menu"><mat-icon>more_vert</mat-icon></button>
                                 <mat-menu #menu="matMenu">
-                                    <button mat-menu-item
+                                    <button mat-menu-item [disabled]="!isAdmin"
                                         (click)="o.orders.length > 1 ? deleteItem(o, i) : deleteOrder(o.id)"><mat-icon>close</mat-icon>Remove</button>
-                                    <button mat-menu-item (click)="editItem(o.id, item)"
+                                    <button mat-menu-item (click)="editItem(o.id, item)" [disabled]="!isAdmin"
                                         [hidden]="item.quantity == 1"><mat-icon>edit</mat-icon>Edit quantity</button>
                                     <button mat-menu-item
                                         (click)="completeItem(o, item)"><mat-icon>check</mat-icon>Complete</button>

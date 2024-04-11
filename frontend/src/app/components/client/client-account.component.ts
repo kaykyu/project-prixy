@@ -1,28 +1,30 @@
-import { Component, Input, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { ClientService } from '../../service/client.service';
 import { Client, Login } from '../../models';
 import { environment } from '../../../environments/environment';
 import { MatDialog } from '@angular/material/dialog';
-import { AuthService } from '../../service/auth.service';
+import { ClientStoreService } from '../../service/client-store.service';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-client-account',
   templateUrl: './client-account.component.html',
   styleUrl: './client-account.component.css'
 })
-export class ClientAccountComponent implements OnInit {
+export class ClientAccountComponent implements OnInit, OnDestroy {
 
   private clientSvc: ClientService = inject(ClientService)
-  private authSvc: AuthService = inject(AuthService)
+  private clientStore: ClientStoreService = inject(ClientStoreService)
   private fb: FormBuilder = inject(FormBuilder)
   private dialog: MatDialog = inject(MatDialog)
 
-  @Input() client!: Client
   @ViewChild('pw') pw!: TemplateRef<any>
   form!: FormGroup
   emailForm!: FormGroup
   pwForm!: FormGroup
+  clientSub: Subscription = new Subscription
+  client!: Client
   editing: boolean = false
   changeEmail: boolean = false
   gst: number = environment.gst
@@ -30,8 +32,17 @@ export class ClientAccountComponent implements OnInit {
   hide: boolean = true
   hide2: boolean = true
   hide3: boolean = true
+  kitchen: string = ''
+  changing: string = ''
 
   ngOnInit(): void {
+    this.clientSub = this.clientStore.getClient.subscribe({
+      next: (value) => this.client = value
+    })
+
+    this.clientSvc.getKitchen()
+      .then(value => this.kitchen = value.username)
+
     this.form = this.fb.group({
       estName: this.fb.control<string>(this.client.estName, [Validators.required, Validators.minLength(3), Validators.maxLength(20)]),
       gst: this.fb.control<boolean>(this.client.tax.gst, [Validators.required]),
@@ -41,6 +52,10 @@ export class ClientAccountComponent implements OnInit {
     this.emailForm = this.fb.group({
       email: this.fb.control<string>(this.client.email, [Validators.email, Validators.required])
     })
+  }
+
+  ngOnDestroy(): void {
+    this.clientSub.unsubscribe()
   }
 
   cancel() {
@@ -60,7 +75,7 @@ export class ClientAccountComponent implements OnInit {
     this.clientSvc.putClient(client)
       .then(value => {
         this.form.patchValue(value)
-        this.clientSvc.client.next(value)
+        this.clientStore.editClient(value)
       })
   }
 
@@ -79,7 +94,8 @@ export class ClientAccountComponent implements OnInit {
       })
   }
 
-  changePw() {
+  changePw(account: string) {
+    this.changing = account
     this.pwForm = this.fb.group({
       oldPw: this.fb.control<string>('', Validators.required),
       pw: this.fb.control<string>('', [Validators.required, Validators.pattern(new RegExp('^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[a-zA-Z]).{8,}$'))]),
@@ -95,17 +111,29 @@ export class ClientAccountComponent implements OnInit {
   }
 
   pwDone() {
-    const change: Login = {
+    var change: Login = {
       'email': this.client.email,
       'pw': this.pwForm.value.oldPw,
       'change': this.pwForm.value.pw
     }
-    this.authSvc.putPassword(change)
+
+    if (this.changing == 'kitchen')
+      change.email = this.kitchen
+
+    this.clientSvc.putPassword(change)
       .then(() => {
-        this.clientSvc.openSnackBar('Password changed successfully')
+        this.clientSvc.openSnackBar(`Password for ${this.changing} changed successfully`)
         this.pwForm.reset()
         this.dialog.closeAll()
       })
       .catch(err => alert(err.error.error))
+  }
+
+  createKitchenAccount() {
+    this.clientSvc.postKitchen()
+      .then(value => {
+        this.kitchen = value.username
+        alert('Kitchen account created, password has been sent to your email')
+      })
   }
 }

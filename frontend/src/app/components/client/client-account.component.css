@@ -9,6 +9,7 @@ mat-form-field {
 tr, td {
     height: 95px;
     width: 40%;
+    vertical-align: middle;
 }
 
 button {

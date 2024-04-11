@@ -54,15 +54,13 @@
     </div>
 
     <div class="main-container">
-        <mat-card class="chart">
+        <mat-card class="chart" [hidden]="!data">
             <mat-card-header>
                 <mat-card-title>Order Frequency</mat-card-title>
             </mat-card-header>
             <mat-card-content>
                 <canvas id="canvas">
-                    <div *ngIf="data">
-                        {{chart}}
-                    </div>
+                    {{chart}}
                 </canvas>
             </mat-card-content>
         </mat-card>
@@ -81,7 +79,7 @@
 </ng-template>
 
 <ng-template #noData>
-    <div class="center">
+    <div class="middle">
         <img src="https://vttp-kq.s3.ap-southeast-1.amazonaws.com/project/chart-error.png">
         <h6 class="main-container">Not enough data to work with :(</h6>
     </div>

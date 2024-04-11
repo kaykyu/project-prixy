@@ -1,5 +1,5 @@
 import { Component, Input, OnInit, inject } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, tap } from 'rxjs';
 import { Menu, Order, User } from '../../models';
 import { UserStoreService } from '../../service/user-store.service';
 
@@ -16,10 +16,14 @@ export class
   @Input() user!: User
   menu$!: Observable<Menu[]>
   categories$!: Observable<Set<string>>
+  tabs: number = 0
+  selectedTab: number = 0
 
   ngOnInit(): void {
     this.menu$ = this.userStore.getMenu
-    this.categories$ = this.userStore.getCategories
+    this.categories$ = this.userStore.getCategories.pipe(
+      tap(value => this.tabs = value.size - 1)
+    )
   }
 
   filter(menu: Menu[], category: string): Menu[] {
@@ -40,4 +44,19 @@ export class
       this.userStore.snackBar(`${item.name} removed from cart.`)
   }
 
+  swipe(direction: string) {
+    switch (direction) {
+      case 'left':
+        if (this.selectedTab === this.tabs)
+          break;
+        this.selectedTab += 1
+        break;
+
+      case 'right':
+        if (this.selectedTab === 0)
+          break;
+        this.selectedTab -= 1
+        break;
+    }
+  }
 }
