@@ -70,7 +70,7 @@ export class ClientMainComponent implements OnInit {
         this.clientInit()
         this.clientSvc.openSnackBar('Password changed successfully.')
       })
-      .catch(err => alert(err.error.error))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
 

@@ -116,16 +116,16 @@ public class ClientController {
     }
 
     @PostMapping(path = "/payment")
-    public ResponseEntity<Void> postPayment(@RequestBody String order) {
-        if (clientSvc.postPayment(order))
+    public ResponseEntity<Void> postPayment(@RequestHeader("Authorization") String token, @RequestBody String order) {
+        if (clientSvc.postPayment(token, order))
             return ResponseEntity.ok().build();
         return ResponseEntity.internalServerError().build();
     }
 
     @PostMapping(path = "/order/item")
-    public ResponseEntity<String> completeItem(@RequestBody OrderEdit edit) {
+    public ResponseEntity<String> completeItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
         try {
-            clientSvc.completeItem(edit);
+            clientSvc.completeItem(token, edit);
             return ResponseEntity.ok().build();
 
         } catch (SqlOrdersException e) {
@@ -167,9 +167,9 @@ public class ClientController {
     }
 
     @PostMapping(path = "/order/delete")
-    public ResponseEntity<String> deleteOrder(@RequestBody String id) {
+    public ResponseEntity<String> deleteOrder(@RequestHeader("Authorization") String token, @RequestBody String id) {
         try {
-            JsonObject result = clientSvc.removeOrder(id);
+            JsonObject result = clientSvc.removeOrder(token, id);
             if (result.isEmpty())
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(result.toString());

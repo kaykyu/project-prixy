@@ -8,16 +8,16 @@ export class SocketService {
 
   ws!: WebSocket
 
-  socket: Subject<void> = new Subject
+  socket: Subject<string> = new Subject
 
-  onMessage(_event: MessageEvent<any>) {
+  onMessage(event: MessageEvent<any>) {
     console.log('Received from Websocket')
-    this.socket.next()
+    this.socket.next(event.data)
   }
 
   async onConnect(client: string) {
     console.log("Connecting...")
-    this.ws = new WebSocket(`wss://${window.location.host}/websocket`)
+    this.ws = new WebSocket(`ws://${window.location.host}/websocket`)
 
     this.ws.onmessage = this.onMessage.bind(this)
     this.ws.onerror = (error) => console.error(error)

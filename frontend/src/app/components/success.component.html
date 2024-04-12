@@ -8,7 +8,7 @@
             </div>
 
             <mat-card>
-                <mat-card-header class="middle">
+                <mat-card-header class="mid">
                     <mat-card-title>
                         {{details.pending ?
                         'Your order is pending payment. Please proceed to the counter to make payment.' :
@@ -53,7 +53,7 @@
                     </table>
                 </mat-card-content>
 
-                <mat-card-actions class="middle">
+                <mat-card-actions class="mid">
                     <button *ngIf="id.endsWith('s')" mat-raised-button color="accent"
                         (click)="sendReceipt()"><mat-icon>mail</mat-icon>Send
                         receipt to Email</button>

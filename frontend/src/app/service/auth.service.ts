@@ -19,9 +19,12 @@ export class AuthService {
         const auth: Auth = JSON.parse(atob(token.split('.')[1]))
         if (auth.exp < Date.now() / 1000) {
           alert('Session has expired')
+          localStorage.removeItem('prixyToken')
           reject()
-        } else if (auth.iss !== 'Prixy')
+        } else if (auth.iss !== 'Prixy') {
+          localStorage.removeItem('prixyToken')
           reject()
+        }
         resolve(auth)
       }
     })

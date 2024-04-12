@@ -90,7 +90,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
       .then(value => this.client.email = value)
       .catch(err => {
         this.emailForm.patchValue(this.client)
-        alert(err.error.error)
+        alert(!!err.error ? err.error.error : 'Something went wrong')
       })
   }
 
@@ -104,7 +104,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
     this.dialog.open(this.pw)
   }
 
-  pwMatch: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  pwMatch: ValidatorFn = (_control: AbstractControl): ValidationErrors | null => {
     const pw = this.pwForm?.controls['pw'].value
     const pw2 = this.pwForm?.controls['pw2'].value
     return pw === pw2 ? null : { notMatched: true }
@@ -126,7 +126,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
         this.pwForm.reset()
         this.dialog.closeAll()
       })
-      .catch(err => alert(err.error.error))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   createKitchenAccount() {

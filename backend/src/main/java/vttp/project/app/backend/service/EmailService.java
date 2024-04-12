@@ -1,6 +1,7 @@
 package vttp.project.app.backend.service;
 
 import java.io.IOException;
+import java.util.logging.Logger;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.RequestEntity;
@@ -28,8 +29,10 @@ public class EmailService {
     @Value("${webapp.host.url}")
     private String url;
 
+    private Logger logger = Logger.getLogger(EmailService.class.getName());
+
     private final String PW_EMAIL = """
-            The password for your %s account is <b>%s</b>. Please change it within 24 hours or account will be deactivated.
+            The password for your %s account is <b>%s</b>. Please change it within 24 hours or the account will be deactivated.
 
             <hr>
             <i>This is an auto-generated email by Prixy. Do not reply to this email.</i>
@@ -43,6 +46,7 @@ public class EmailService {
             """;
 
     public void sendReceipt(String email, String url) throws IOException {
+        logger.info(">>> Sending receipt to %s...".formatted(email));
 
         RestTemplate template = new RestTemplate();
         ResponseEntity<String> receipt = template.exchange(RequestEntity.get(url).build(), String.class);
@@ -62,6 +66,7 @@ public class EmailService {
 
         switch (response.getStatusCode()) {
             case 202:
+                logger.info(">>> Receipt sent to %s".formatted(email));
                 break;
             default:
                 throw new IOException("Error sending receipt email.");
@@ -69,6 +74,7 @@ public class EmailService {
     }
 
     public void sendPw(Client client, String pw, UserRole role) throws IOException {
+        logger.info(">>> Sending verification email to %s...".formatted(client.getEmail()));
 
         Email from = new Email("kaykyu8080@gmail.com", "Prixy");
         String subject = "%s account for %s".formatted(role.toString(), client.getEstName());
@@ -85,6 +91,7 @@ public class EmailService {
 
         switch (response.getStatusCode()) {
             case 202:
+                logger.info(">>> Verification email sent to %s".formatted(client.getEmail()));
                 break;
             default:
                 throw new IOException("Error sending password email.");
@@ -92,6 +99,8 @@ public class EmailService {
     }
 
     public void sendResetPw(String email, String pw) throws IOException {
+        logger.info(">>> Sending reset email to %s".formatted(email));
+
         Email from = new Email("kaykyu8080@gmail.com", "Prixy");
         String subject = "Password reset for Prixy";
         Email to = new Email(email);
@@ -107,6 +116,7 @@ public class EmailService {
 
         switch (response.getStatusCode()) {
             case 202:
+                logger.info(">>> Reset email sent to %s".formatted(email));
                 break;
             default:
                 throw new IOException("Error sending password email.");

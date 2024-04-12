@@ -51,12 +51,12 @@ public class WebSocketHandler extends TextWebSocketHandler {
         clients.remove(session);
     }
 
-    public void clientOrderIn(String id) {
+    public void clientOrderIn(String id, Boolean ring) {
         if (clients != null)
             clients.forEach((key, value) -> {
                 if (value.equals(id))
                     try {
-                        key.sendMessage(new TextMessage(""));
+                        key.sendMessage(new TextMessage(ring.toString()));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }

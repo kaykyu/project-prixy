@@ -58,6 +58,9 @@ public class ClientService {
     @Autowired
     private StripeService stripeSvc;
 
+    @Autowired
+    private WebSocketHandler socket;
+
     @Value("${gst}")
     private Integer gst;
 
@@ -126,7 +129,7 @@ public class ClientService {
 
     public Boolean deleteMenuImage(String id) {
         return clientRepo.putMenuImage(id, null);
-    } 
+    }
 
     public Boolean deleteMenu(String id) {
         return clientRepo.deleteMenu(id);
@@ -150,28 +153,33 @@ public class ClientService {
                 .build();
     }
 
-    public Boolean postPayment(String order) {
+    public Boolean postPayment(String token, String order) {
+        socket.clientOrderIn(getId(token), true);
         return clientRepo.updateOrderStatus(order, OrderStatus.RECEIVED);
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public void completeItem(OrderEdit edit) throws SqlOrdersException {
+    public void completeItem(String token, OrderEdit edit) throws SqlOrdersException {
 
         if (!(clientRepo.updateOrderItem(edit.getId(), edit.getItem(), true)
                 && clientRepo.updateOrderProgress(edit.getProgress(), edit.getId())))
             throw new SqlOrdersException("Failed to update completed order item");
+
+        socket.clientOrderIn(getId(token), false);
     }
 
     public Double applyTax(String id, Double amount) {
         Tax tax = userRepo.getTaxes(id);
 
-        if (tax.getSvc() != 0)
+        if (tax.getSvc() != 0) {
             amount *= 100 + tax.getSvc();
-        if (tax.getGst())
+            amount /= 100;
+        }
+        if (tax.getGst()) {
             amount *= 100 + gst;
-
-        DecimalFormat df = new DecimalFormat("0.00");
-        return Double.parseDouble(df.format(amount / 10000));
+            amount /= 100;
+        }
+        return amount;
     }
 
     public Double getAmount(String id, OrderEdit edit) {
@@ -193,8 +201,12 @@ public class ClientService {
                 return JsonObject.EMPTY_JSON_OBJECT;
             }
 
-        if (clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity()))
-            return Json.createObjectBuilder().add("refund", refund.toString()).build();
+        if (clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity())) {
+            socket.clientOrderIn(getId(token), false);
+
+            DecimalFormat df = new DecimalFormat("0.00");
+            return Json.createObjectBuilder().add("refund", df.format(refund)).build();
+        }
         return JsonObject.EMPTY_JSON_OBJECT;
     }
 
@@ -225,7 +237,10 @@ public class ClientService {
                     throw new SqlOrdersException("Failed to update removed order item");
         }
 
-        return Json.createObjectBuilder().add("refund", refund.toString()).build();
+        socket.clientOrderIn(getId(token), false);
+
+        DecimalFormat df = new DecimalFormat("0.00");
+        return Json.createObjectBuilder().add("refund", df.format(refund)).build();
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
@@ -245,11 +260,12 @@ public class ClientService {
             throw new SqlOrdersException("Failed to update completed order");
 
         statsRepo.saveCompletedOrder(order);
+        socket.clientOrderIn(order.getClientId(), false);
         return true;
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public JsonObject removeOrder(String id) throws SqlOrdersException {
+    public JsonObject removeOrder(String token, String id) throws SqlOrdersException {
 
         Double refund = 0.0;
         if (id.endsWith("c"))
@@ -267,7 +283,11 @@ public class ClientService {
 
         if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)))
             throw new SqlOrdersException("Failed to update removed order");
-        return Json.createObjectBuilder().add("refund", refund.toString()).build();
+
+        socket.clientOrderIn(getId(token), false);
+
+        DecimalFormat df = new DecimalFormat("0.00");
+        return Json.createObjectBuilder().add("refund", df.format(refund)).build();
     }
 
     public String getStats(String token, Integer q) {

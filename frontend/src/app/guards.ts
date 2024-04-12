@@ -25,7 +25,7 @@ export const checkAuth: CanActivateChildFn =
                     route.data = { role: value.role }
                     return true
                 } else if (value.role !== 'CLIENT') {
-                    alert('You do not have permission to do that')
+                    alert('Kitchen account has limited access')
                     return router.parseUrl('/main/kitchen')
                 }
                 return true

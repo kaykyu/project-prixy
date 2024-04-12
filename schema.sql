@@ -12,8 +12,7 @@ create table clients (
     gst boolean default false,
 
     primary key(email),
-    key(id),
-    key(est_name)
+    key(id)
 );
 
 create table menu (

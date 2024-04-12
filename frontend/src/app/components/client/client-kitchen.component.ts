@@ -50,11 +50,11 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
       next: (value) => {
         this.client = value
         this.socketSvc.onConnect(value.id)
-        .then(() => {
-          this.socketSub = this.socketSvc.socket.asObservable().subscribe({
-            next: () => this.newOrder()
+          .then(() => {
+            this.socketSub = this.socketSvc.socket.asObservable().subscribe({
+              next: value => this.newOrder(value)
+            })
           })
-        })
       }
     })
     this.routeSub = this.ar.data.subscribe({
@@ -74,12 +74,14 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     this.routeSub.unsubscribe()
   }
 
-  newOrder() {
+  newOrder(ring: string) {
     this.orders$ = this.clientSvc.getKitchenOrders()
-    const audio = new Audio
-    audio.src = '../../../assets/audio/ring.mp3'
-    audio.play()
-    this.clientSvc.openSnackBar('Order up!')
+    if (ring === 'true') {
+      const audio = new Audio
+      audio.src = '../../../assets/audio/ring.mp3'
+      audio.play()
+      this.clientSvc.openSnackBar('Order up!')
+    }
   }
 
   generateLink() {
@@ -113,8 +115,6 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
         .afterClosed()
         .subscribe({
           next: (value) => {
-            if (value !== '')
-              this.orders$ = this.clientSvc.getKitchenOrders()
             if (typeof value == 'object')
               this.printLink(value)
           }
@@ -136,11 +136,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
         item: item.id,
         progress: progress
       })
-        .then(() => {
-          item.completed = true
-          order.progress = progress
-        })
-        .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
+        .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   editItem(order: string, item: Order) {
@@ -158,10 +154,10 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
             quantity: this.form.value.quantity
           })
             .then(value => {
-              if (value.refund !== '0.0')
+              if (value.refund != '0.00')
                 alert(`Refund of $${value.refund}`)
               this.clientSvc.openSnackBar(`${item.name} has been changed to ${this.form.value.quantity}`)
-              item.quantity = this.form.value.quantity
+              // item.quantity = this.form.value.quantity
             })
             .catch(() => alert('Something went wrong'))
         }
@@ -179,21 +175,19 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
       quantity: 0
     })
       .then(value => {
-        if (value.refund !== '0.0')
+        if (value.refund !== '0.00')
           alert(`Refund of $${value.refund}`)
-        this.orders$ = this.clientSvc.getKitchenOrders()
         this.clientSvc.openSnackBar(`${item[0].name} has been removed`)
       })
-      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   completeOrder(id: string) {
     this.clientSvc.completeOrder(id)
       .then(() => {
         this.clientSvc.openSnackBar(`OrderID: #${id.toUpperCase()} completed`)
-        this.orders$ = this.clientSvc.getKitchenOrders()
       })
-      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   deleteOrder(id: string) {
@@ -201,9 +195,8 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
       .then(value => {
         if (value.refund !== '0.0')
           alert(`Refund of $${value.refund}`)
-        this.orders$ = this.clientSvc.getKitchenOrders()
       })
-      .catch(err => alert(!!err.error.error ? err.error.error : 'Something went wrong'))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   getQR(link: string) {

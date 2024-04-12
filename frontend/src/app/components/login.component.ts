@@ -48,7 +48,7 @@ export class LoginComponent implements OnInit {
         alert('A password has been sent to your email. Please check your email and sign in within 24 hours.')
         this.isSignup = false
       })
-      .catch((err) => alert(err.error.error))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   login() {
@@ -58,7 +58,7 @@ export class LoginComponent implements OnInit {
       .then(() => this.router.navigate(['/main']))
       .catch(err => {
         this.isLogin = false
-        alert(err.error.error)
+        alert(!!err.error ? err.error.error : 'Something went wrong')
       })
   }
 
@@ -75,6 +75,6 @@ export class LoginComponent implements OnInit {
         alert('New password has been sent to your email.')
         this.dialog.closeAll()
       })
-      .catch(err => alert(err.error ? err.error.error : 'Something went wrong'))
+      .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 }

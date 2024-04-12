@@ -95,7 +95,7 @@ public class UserService {
             return JsonObject.EMPTY_JSON_OBJECT;
         }
 
-        socket.clientOrderIn(request.getClient());
+        socket.clientOrderIn(request.getClient(), false);
         return Json.createObjectBuilder()
                 .add("url", "/success/%s".formatted(request.getId())).build();
     }
@@ -131,7 +131,7 @@ public class UserService {
         if (!userRepo.saveOrderItems(request))
             throw new SqlOrdersException("Failed to save into OrderItems");
 
-        socket.clientOrderIn(request.getClient());
+        socket.clientOrderIn(request.getClient(), true);
     }
 
     public JsonObject sendReceipt(String id) {
