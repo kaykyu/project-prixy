@@ -17,7 +17,7 @@ export class SocketService {
 
   async onConnect(client: string) {
     console.log("Connecting...")
-    this.ws = new WebSocket(`ws://${window.location.host}/websocket`)
+    this.ws = new WebSocket(`wss://${window.location.host}/websocket`)
 
     this.ws.onmessage = this.onMessage.bind(this)
     this.ws.onerror = (error) => console.error(error)
