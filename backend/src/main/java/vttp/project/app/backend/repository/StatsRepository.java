@@ -37,6 +37,11 @@ public class StatsRepository {
         mongoTemplate.save(order.toDoc(), COLL);
     }
 
+    public Boolean checkOrderCompleted(String id) {
+        Query query = Query.query(Criteria.where("id").is(id));
+        return mongoTemplate.findOne(query, Document.class, COLL) != null;
+    }
+
     public Long today() {
 
         Calendar cal = Calendar.getInstance();

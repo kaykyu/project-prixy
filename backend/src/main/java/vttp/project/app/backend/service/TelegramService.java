@@ -14,6 +14,7 @@ import jakarta.json.Json;
 import vttp.project.app.backend.model.KitchenOrder;
 import vttp.project.app.backend.model.TeleUpdate;
 import vttp.project.app.backend.repository.ClientRepository;
+import vttp.project.app.backend.repository.StatsRepository;
 
 @Service
 public class TelegramService {
@@ -23,6 +24,9 @@ public class TelegramService {
 
     @Autowired
     private ClientRepository clientRepo;
+
+    @Autowired
+    private StatsRepository statsRepo;
 
     private RestTemplate template = new RestTemplate();
     private Logger logger = Logger.getLogger(TelegramService.class.getName());
@@ -81,7 +85,7 @@ public class TelegramService {
     public String checkOrder(TeleUpdate tele) {
 
         String[] msg = tele.getText().split(" ");
-        if (msg.length < 2)
+        if (msg.length != 2)
             return null;
 
         String id = msg[1];
@@ -98,6 +102,9 @@ public class TelegramService {
                     case IN_PROGRESS:
                         return "Busy cooking up your order! (%d".formatted(result.getProgress()) + "% done)";
                 }
+
+            else if (statsRepo.checkOrderCompleted(id))
+                return "Your order has been completed. Enjoy your meal!";
         }
         return null;
     }

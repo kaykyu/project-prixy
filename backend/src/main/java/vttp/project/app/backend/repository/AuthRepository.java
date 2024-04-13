@@ -2,6 +2,8 @@ package vttp.project.app.backend.repository;
 
 import java.time.Duration;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ValueOperations;
 import org.springframework.stereotype.Repository;
 
@@ -10,9 +12,12 @@ import vttp.project.app.backend.model.Login;
 
 @Repository
 public class AuthRepository {
-    
+
     @Resource(name = "redisUsers")
     private ValueOperations<String, Login> userValueOps;
+
+    @Autowired
+    private RedisTemplate<String, Login> redisTemplate;
 
     public void signup(Login login) {
         userValueOps.set(login.getEmail(), login, Duration.ofHours(24));
@@ -27,8 +32,18 @@ public class AuthRepository {
     }
 
     public void putPassword(String email, String newPw) {
-        Login login = userValueOps.get(email);
+        Login login = getLogin(email);
         login.setPw(newPw);
         userValueOps.set(email, login);
+    }
+
+    public Boolean putEmail(String old, String change) {
+        Login login = getLogin(old);
+        if (!redisTemplate.delete(old))
+            return false;
+
+        login.setEmail(change);
+        userValueOps.set(change, login);
+        return true;
     }
 }

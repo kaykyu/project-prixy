@@ -28,8 +28,8 @@ export class ClientService {
     return firstValueFrom(this.http.get<Client>('/api/client', { headers: this.headers() }))
   }
 
-  putEmail(email: string): Promise<string> {
-    return firstValueFrom(this.http.put<string>('api/client/email', email, { headers: this.headers() }))
+  putEmail(login: Login): Promise<any> {
+    return firstValueFrom(this.http.put<any>('api/auth/email', login, { headers: this.headers() }))
   }
 
   putClient(client: any): Promise<Client> {

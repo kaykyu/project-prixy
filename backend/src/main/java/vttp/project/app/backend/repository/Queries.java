@@ -18,7 +18,7 @@ public class Queries {
     public static final String SQL_UPDATE_EMAIL = """
             update clients
             set email = ?
-            where id = ?
+            where email = ?
             """;
             
     public static final String SQL_UPDATE_CLIENT = """
@@ -123,7 +123,17 @@ public class Queries {
       public static final String SQL_DELETE_ORDER_ITEM = """
             delete from order_items
             where order_id = ? and item_id = ?
-            """;                      
+            """;   
+                               
+    public static final String SQL_GET_ORDER_AMOUNT = """
+            select amount from orders where id = ?
+            """;
+            
+    public static final String SQL_UPDATE_ORDER_AMOUNT = """
+            update orders
+            set amount = ?
+            where id = ?
+            """;
                        
     public static final String SQL_GET_COMPLETED_ORDER = """
             select orders.id, orders.client_id, orders.ordered_date, orders.table_id, orders.email, orders.name, orders.comments, orders.payment_id, orders.amount, 

@@ -11,7 +11,6 @@ import org.apache.commons.csv.CSVPrinter;
 import org.bson.Document;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -73,21 +72,15 @@ public class ClientService {
     }
 
     public JsonObject getClient(String token) {
+        Client client = clientRepo.getClient(getId(token));
+        if (client == null)
+            return JsonObject.EMPTY_JSON_OBJECT;
         return clientRepo.getClient(getId(token)).toJson();
     }
 
     public JsonObject putClient(String token, Client client) {
         clientRepo.putClient(getId(token), client);
         return getClient(token);
-    }
-
-    public JsonObject putEmail(String token, String email) {
-        try {
-            clientRepo.putEmail(getId(token), email);
-            return JsonObject.EMPTY_JSON_OBJECT;
-        } catch (DuplicateKeyException e) {
-            return Json.createObjectBuilder().add("error", "Email has already been used.").build();
-        }
     }
 
     public JsonArray getMenu(String token) {
@@ -128,6 +121,7 @@ public class ClientService {
     }
 
     public Boolean deleteMenuImage(String id) {
+        s3Repo.deleteImage(id);
         return clientRepo.putMenuImage(id, null);
     }
 
@@ -187,10 +181,12 @@ public class ClientService {
         return applyTax(id, menu.getPrice() * (edit.getOld() - edit.getQuantity()));
     }
 
-    public JsonObject editItem(String token, OrderEdit edit) {
+    @Transactional(rollbackFor = SqlOrdersException.class)
+    public JsonObject editItem(String token, OrderEdit edit) throws SqlOrdersException {
 
         String id = getId(token);
         Double refund = getAmount(id, edit);
+        Boolean updateAmt = clientRepo.updateOrderAmount(edit.getId(), refund);
 
         if (edit.getId().toLowerCase().endsWith("s"))
             try {
@@ -201,13 +197,13 @@ public class ClientService {
                 return JsonObject.EMPTY_JSON_OBJECT;
             }
 
-        if (clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity())) {
-            socket.clientOrderIn(getId(token), false);
+        if (!(clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity()) && updateAmt))
+            throw new SqlOrdersException("Failed to update edited order item");
 
-            DecimalFormat df = new DecimalFormat("0.00");
-            return Json.createObjectBuilder().add("refund", df.format(refund)).build();
-        }
-        return JsonObject.EMPTY_JSON_OBJECT;
+        socket.clientOrderIn(getId(token), false);
+
+        DecimalFormat df = new DecimalFormat("0.00");
+        return Json.createObjectBuilder().add("refund", df.format(refund)).build();
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
@@ -215,6 +211,7 @@ public class ClientService {
 
         String id = getId(token);
         Double refund = getAmount(id, edit);
+        Boolean updateAmt = clientRepo.updateOrderAmount(edit.getId(), refund);
 
         if (edit.getId().toLowerCase().endsWith("s"))
             try {
@@ -227,13 +224,14 @@ public class ClientService {
 
         switch (edit.getProgress()) {
             case 100:
-                if (!(clientRepo.removeOrderItem(edit.getId(), edit.getItem()) && completeOrder(edit.getId())))
+                if (!(clientRepo.removeOrderItem(edit.getId(), edit.getItem()) && completeOrder(edit.getId())
+                        && updateAmt))
                     throw new SqlOrdersException("Failed to update removed order item");
                 break;
 
             default:
                 if (!(clientRepo.updateOrderProgress(edit.getProgress(), edit.getId())
-                        && clientRepo.removeOrderItem(edit.getId(), edit.getItem())))
+                        && clientRepo.removeOrderItem(edit.getId(), edit.getItem()) && updateAmt))
                     throw new SqlOrdersException("Failed to update removed order item");
         }
 

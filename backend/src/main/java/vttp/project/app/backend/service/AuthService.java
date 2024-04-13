@@ -7,6 +7,7 @@ import org.passay.CharacterRule;
 import org.passay.EnglishCharacterData;
 import org.passay.PasswordGenerator;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DuplicateKeyException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -37,7 +38,7 @@ public class AuthService implements UserDetailsService {
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
 
         Login user = authRepo.getLogin(username);
-        if (user.getPw() == null)
+        if (user == null)
             throw new UsernameNotFoundException("Email does not exist!");
         return new UserPrincipal(user);
     }
@@ -59,6 +60,19 @@ public class AuthService implements UserDetailsService {
     public Boolean saveClient(String email) {
         Login login = authRepo.getLogin(email);
         return clientRepo.signUp(login, UUID.randomUUID().toString().substring(0, 8));
+    }
+
+    public JsonObject putEmail(String email, Login login) {
+
+        if (authRepo.putEmail(email, login.getEmail()))
+            try {
+                clientRepo.putEmail(email, login.getEmail());
+                return JsonObject.EMPTY_JSON_OBJECT;
+                
+            } catch (DuplicateKeyException e) {
+                return Json.createObjectBuilder().add("error", "Email has already been used.").build();
+            }
+        return Json.createObjectBuilder().add("error", "Email not found").build();
     }
 
     public JsonObject resetPw(String email, String encode, String pw) {

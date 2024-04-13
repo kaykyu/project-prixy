@@ -5,7 +5,7 @@ import { Client, Login } from '../../models';
 import { environment } from '../../../environments/environment';
 import { MatDialog } from '@angular/material/dialog';
 import { ClientStoreService } from '../../service/client-store.service';
-import { Subscription } from 'rxjs';
+import { Subscription, firstValueFrom } from 'rxjs';
 
 @Component({
   selector: 'app-client-account',
@@ -20,9 +20,11 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
   private dialog: MatDialog = inject(MatDialog)
 
   @ViewChild('pw') pw!: TemplateRef<any>
+  @ViewChild('confirmPw') cfmPw!: TemplateRef<any>
   form!: FormGroup
   emailForm!: FormGroup
   pwForm!: FormGroup
+  cfmForm!: FormGroup
   clientSub: Subscription = new Subscription
   client!: Client
   editing: boolean = false
@@ -58,8 +60,17 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
     this.clientSub.unsubscribe()
   }
 
+  emailChangeCheck(): boolean {
+    return this.emailForm.invalid || this.emailForm.value.email === this.client.email
+  }
+
   cancel() {
-    this.form.patchValue(this.client)
+    const original = {
+      estName: this.client.estName,
+      gst: this.client.tax.gst,
+      svc: this.client.tax.svc
+    }
+    this.form.patchValue(original)
     this.editing = false
   }
 
@@ -86,12 +97,38 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
 
   emailDone() {
     this.changeEmail = false
-    this.clientSvc.putEmail(this.emailForm.value.email)
-      .then(value => this.client.email = value)
-      .catch(err => {
-        this.emailForm.patchValue(this.client)
-        alert(!!err.error ? err.error.error : 'Something went wrong')
+    this.confirmPw()
+      .then(value => {
+        if (value) {
+          const login: Login = {
+            email: this.emailForm.value.email,
+            pw: this.cfmForm.value.pw
+          }
+          this.clientSvc.putEmail(login)
+            .then(value => {
+              this.client.email = this.emailForm.value
+              this.clientStore.editClient(this.client)
+              localStorage.setItem('prixyToken', value.token)
+              this.cfmForm.reset()
+              this.hide = true
+              this.clientSvc.openSnackBar('Email changed successfully')
+            })
+            .catch(err => {
+              this.emailForm.patchValue(this.client)
+              alert(!!err.error ? err.error.error : 'Something went wrong')
+            })
+        } else {
+          alert('You have to confirm password to change email.')
+          this.emailForm.patchValue(this.client)
+        }
       })
+  }
+
+  confirmPw(): Promise<boolean> {
+    this.cfmForm = this.fb.group({
+      pw: this.fb.control<string>('', Validators.required),
+    })
+    return firstValueFrom(this.dialog.open(this.cfmPw).afterClosed())
   }
 
   changePw(account: string) {
@@ -123,7 +160,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
     this.clientSvc.putPassword(change)
       .then(() => {
         this.clientSvc.openSnackBar(`Password for ${this.changing} changed successfully`)
-        this.pwForm.reset()
+        this.resetPwForm()
         this.dialog.closeAll()
       })
       .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
@@ -135,5 +172,12 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
         this.kitchen = value.username
         alert('Kitchen account created, password has been sent to your email')
       })
+  }
+
+  resetPwForm() {
+    this.pwForm.reset()
+    this.hide = true
+    this.hide2 = true
+    this.hide3 = true
   }
 }

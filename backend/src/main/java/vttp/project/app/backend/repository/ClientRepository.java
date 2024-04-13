@@ -64,8 +64,8 @@ public class ClientRepository {
                 client.getTax().getGst(), id) == 1;
     }
 
-    public Boolean putEmail(String id, String email) throws DuplicateKeyException {
-        return sqlTemplate.update(Queries.SQL_UPDATE_EMAIL, email, id) == 1;
+    public Boolean putEmail(String old, String change) throws DuplicateKeyException {
+        return sqlTemplate.update(Queries.SQL_UPDATE_EMAIL, change, old) == 1;
     }
     
     public List<Menu> getMenu(String id) {
@@ -204,6 +204,14 @@ public class ClientRepository {
 
     public Boolean removeOrder(String id) {
         return sqlTemplate.update(Queries.SQL_DELETE_ORDER_BY_ID, id) == 1;
+    }
+
+    public Boolean updateOrderAmount(String id, Double minus) {
+        
+        SqlRowSet rs = sqlTemplate.queryForRowSet(Queries.SQL_GET_ORDER_AMOUNT, id);
+        if (!rs.next())
+            return false;        
+        return sqlTemplate.update(Queries.SQL_UPDATE_ORDER_AMOUNT, rs.getDouble("amount") - minus, id) == 1;
     }
 
     public Boolean removeOrderItems(String id) {

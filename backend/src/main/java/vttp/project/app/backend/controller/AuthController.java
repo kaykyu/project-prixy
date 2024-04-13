@@ -103,6 +103,26 @@ public class AuthController {
         return ResponseEntity.badRequest().body(result.toString());
     }
 
+    @PutMapping(path = "/email")
+    public ResponseEntity<String> putEmail(@RequestHeader("Authorization") String token, @RequestBody Login login) {
+
+        String email = clientSvc.getEmail(token);
+        try {
+            authManager.authenticate(new UsernamePasswordAuthenticationToken(email, login.getPw()));
+        } catch (AuthenticationException e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body(Json.createObjectBuilder().add("error", e.getMessage()).build().toString());
+        }
+
+        JsonObject result = authSvc.putEmail(email, login);
+        if (!result.isEmpty())
+            return ResponseEntity.badRequest().body(result.toString());
+
+        Authentication auth = authManager
+                .authenticate(new UsernamePasswordAuthenticationToken(login.getEmail(), login.getPw()));
+        return ResponseEntity.ok(tokenSvc.generateToken(auth).toString());
+    }
+
     @PutMapping(path = "/password")
     public ResponseEntity<String> putPassword(@RequestBody Login login) {
         try {

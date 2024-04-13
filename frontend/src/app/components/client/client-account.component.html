@@ -42,7 +42,7 @@
                                 color="warn"><mat-icon>close</mat-icon>Cancel</button>
 
                             <button mat-raised-button (click)="emailDone()"
-                                color="accent"><mat-icon>done</mat-icon>Done</button>
+                                color="accent" [disabled]="emailChangeCheck()"><mat-icon>done</mat-icon>Done</button>
                         </div>
 
                     </td>
@@ -147,13 +147,7 @@
                         [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
                         <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
                     </button>
-                    @if (pwForm.controls['pw'].hasError('pattern') &&
-                    !pwForm.controls['pw'].hasError('required')) {
-                    <mat-error
-                        matTooltip="At least 8 characters, must contain at least 1 uppercase letter, 1 lowercase letter and 1 number, can contain special characters">
-                        Password <strong>does not</strong> fulfil requirements</mat-error>
-                    }
-                    @if (pwForm.controls['pw'].hasError('required')) {
+                    @if (pwForm.controls['oldPw'].hasError('required')) {
                     <mat-error>Password is <strong>required</strong></mat-error>
                     }
                 </mat-form-field>
@@ -213,4 +207,31 @@
                 Account</button>
         </td>
     </tr>
+</ng-template>
+
+<ng-template #confirmPw>
+    <h2 mat-dialog-title>Please confirm your password to continue</h2>
+    <mat-dialog-content>
+        <form [formGroup]="cfmForm">
+            <p>
+                <mat-form-field>
+                    <mat-label>Current Password</mat-label>
+                    <input matInput placeholder="Enter Password" formControlName="pw"
+                        [type]="hide ? 'password' : 'text'">
+                    <button mat-icon-button matSuffix type="button" (click)="hide = !hide"
+                        [attr.aria-label]="'Hide password'" [attr.aria-pressed]="hide">
+                        <mat-icon>{{hide ? 'visibility_off' : 'visibility'}}</mat-icon>
+                    </button>
+                    @if (cfmForm.controls['pw'].hasError('required')) {
+                    <mat-error>Password is <strong>required</strong></mat-error>
+                    }
+                </mat-form-field>
+            </p>
+        </form>
+    </mat-dialog-content>
+    <mat-dialog-actions align="center">
+        <button mat-raised-button color="warn" mat-dialog-close><mat-icon>close</mat-icon>Cancel</button>
+        <button mat-raised-button color="accent" [mat-dialog-close]="true"
+            [disabled]="cfmForm.invalid"><mat-icon>done</mat-icon>Done</button>
+    </mat-dialog-actions>
 </ng-template>

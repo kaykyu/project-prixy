@@ -33,7 +33,7 @@ public class SecurityConfig {
     @Value("${jwt.secret.key}")
     private String secretKey;
 
-    private final String[] ENDPOINTS = { "/api/client/**", "/api/auth/kitchen", "/api/auth/password", "/api/auth/verify" };
+    private final String[] ENDPOINTS = { "/api/client/**", "/api/auth/kitchen", "/api/auth/password", "/api/auth/verify", "/api/auth/email" };
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {

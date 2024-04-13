@@ -36,21 +36,15 @@ public class ClientController {
 
     @GetMapping()
     public ResponseEntity<String> getClient(@RequestHeader("Authorization") String token) {
-        return ResponseEntity.ok(clientSvc.getClient(token).toString());
+        JsonObject result = clientSvc.getClient(token);
+        if (result.isEmpty())
+            return ResponseEntity.notFound().build();
+        return ResponseEntity.ok(result.toString());
     }
 
     @PutMapping()
     public ResponseEntity<String> putClient(@RequestHeader("Authorization") String token, @RequestBody Client client) {
         return ResponseEntity.ok(clientSvc.putClient(token, client).toString());
-    }
-
-    @PutMapping(path = "/email")
-    public ResponseEntity<String> putEmail(@RequestHeader("Authorization") String token, @RequestBody String email) {
-
-        JsonObject result = clientSvc.putEmail(token, email);
-        if (result.isEmpty())
-            return ResponseEntity.ok(email);
-        return ResponseEntity.badRequest().body(result.toString());
     }
 
     @GetMapping(path = "/menu")
@@ -123,7 +117,8 @@ public class ClientController {
     }
 
     @PostMapping(path = "/order/item")
-    public ResponseEntity<String> completeItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
+    public ResponseEntity<String> completeItem(@RequestHeader("Authorization") String token,
+            @RequestBody OrderEdit edit) {
         try {
             clientSvc.completeItem(token, edit);
             return ResponseEntity.ok().build();
@@ -135,10 +130,15 @@ public class ClientController {
 
     @PutMapping(path = "/order/item")
     public ResponseEntity<String> putItem(@RequestHeader("Authorization") String token, @RequestBody OrderEdit edit) {
-        JsonObject result = clientSvc.editItem(token, edit);
-        if (result.isEmpty())
-            return ResponseEntity.internalServerError().build();
-        return ResponseEntity.ok(result.toString());
+        try {
+            JsonObject result = clientSvc.editItem(token, edit);
+            if (result.isEmpty())
+                return ResponseEntity.internalServerError().build();
+            return ResponseEntity.ok(result.toString());
+            
+        } catch (SqlOrdersException e) {
+            return ResponseEntity.internalServerError().body(e.toJson().toString());
+        }
     }
 
     @PostMapping(path = "/order/item/delete")
@@ -173,7 +173,7 @@ public class ClientController {
             if (result.isEmpty())
                 return ResponseEntity.notFound().build();
             return ResponseEntity.ok(result.toString());
-            
+
         } catch (SqlOrdersException e) {
             return ResponseEntity.internalServerError().body(e.toJson().toString());
         }
