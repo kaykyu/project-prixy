@@ -1,4 +1,4 @@
-<div class="user">
+<div class="user" *ngIf="!load else loading">
     <div *ngIf="details else completed" class="center">
 
         <div>
@@ -72,5 +72,16 @@
     <div class="center">
         <h1>Your order has been completed.</h1>
         <div class="footer">Powered by Prixy</div>
+    </div>
+</ng-template>
+
+<ng-template #loading>
+    <div class="center">
+        <div>
+            <mat-spinner></mat-spinner>
+        </div>
+        <div class="main-container">
+            <h6>Loading...</h6>
+        </div>
     </div>
 </ng-template>

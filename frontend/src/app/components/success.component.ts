@@ -17,11 +17,13 @@ export class SuccessComponent implements OnInit {
   id: string = ''
   details!: OrderDetails
   tableCols: string[] = ['item', 'quantity']
+  load: boolean = true
 
   ngOnInit(): void {
     this.id = this.ar.snapshot.params['id']
     this.userSvc.getOrders(this.id)
       .then(value => {
+        this.load = false
         if (!!value) {
           this.details = value
           localStorage.removeItem(value.id)
