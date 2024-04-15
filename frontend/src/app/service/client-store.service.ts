@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { ComponentStore } from '@ngrx/component-store';
-import { Client, ClientSlice } from '../models';
+import { Client, ClientSlice, KitchenOrder, Menu } from '../models';
 
 @Injectable({
   providedIn: 'root'
@@ -15,10 +15,48 @@ export class ClientStoreService extends ComponentStore<ClientSlice> {
     (slice: ClientSlice) => slice.client
   )
 
-  readonly editClient = this.updater<Client>(
-    (_slice: ClientSlice, client: Client) => {
-      const newSlice = { client: client }
-      return newSlice
+  readonly getOrders = this.select<KitchenOrder[]>(
+    (slice: ClientSlice) => slice.orders
+  )
+
+  readonly getPending = this.select<KitchenOrder[]>(
+    (slice: ClientSlice) => slice.pending
+  )
+
+  readonly getMenu = this.select<Menu[]>(
+    (slice: ClientSlice) => slice.menu
+  )
+
+  readonly setClient = this.updater<Client>(
+    (slice: ClientSlice, client: Client) => {
+      return {
+        client: client,
+        orders: slice.orders,
+        pending: slice.pending,
+        menu: slice.menu
+      }
+    }
+  )
+
+  readonly setOrders = this.updater<KitchenOrder[]>(
+    (slice: ClientSlice, orders: KitchenOrder[]) => {
+      return {
+        client: slice.client,
+        orders: orders.filter(value => value.status != 'PENDING'),
+        pending: orders.filter(value => value.status == 'PENDING'),
+        menu: slice.menu
+      }
+    }
+  )
+
+  readonly setMenu = this.updater<Menu[]>(
+    (slice: ClientSlice, menu: Menu[]) => {
+      return {
+        client: slice.client,
+        orders: slice.orders,
+        pending: slice.pending,
+        menu: menu
+      }
     }
   )
 }
@@ -32,5 +70,8 @@ const INIT_SLICE = {
       svc: 0,
       gst: false
     }
-  }
+  },
+  orders: [],
+  pending: [],
+  menu: []
 }

@@ -86,7 +86,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
     this.clientSvc.putClient(client)
       .then(value => {
         this.form.patchValue(value)
-        this.clientStore.editClient(value)
+        this.clientStore.setClient(value)
       })
   }
 
@@ -107,7 +107,7 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
           this.clientSvc.putEmail(login)
             .then(value => {
               this.client.email = this.emailForm.value
-              this.clientStore.editClient(this.client)
+              this.clientStore.setClient(this.client)
               localStorage.setItem('prixyToken', value.token)
               this.cfmForm.reset()
               this.hide = true

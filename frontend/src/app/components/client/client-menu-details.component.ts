@@ -27,8 +27,8 @@ export class ClientMenuDetailsComponent implements OnInit, OnDestroy {
   selectedFile: any = null
   add: boolean = true
   categories: string[] = []
-  imageChangedEvent: any = '';
-  croppedImage: any = '';
+  imageChangedEvent: any = ''
+  croppedImage: any = ''
 
   ngOnInit(): void {
     const keys = Object.keys(MenuCategory)

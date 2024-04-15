@@ -28,7 +28,7 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
   routeSub: Subscription = new Subscription
   client!: Client
   orders$!: Observable<KitchenOrder[]>
-  pending: KitchenOrder[] = []
+  pending$!: Observable<KitchenOrder[]>
   socketSub!: Subscription
   receiptSub!: Subscription
   tableCols: string[] = ['name', 'quantity', 'action']
@@ -45,18 +45,22 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
 
   ngOnInit(): void {
-    this.orders$ = this.clientSvc.getKitchenOrders()
+    this.getOrders()
+    this.orders$ = this.clientStore.getOrders
+    this.pending$ = this.clientStore.getPending
+
     this.clientSub = this.clientStore.getClient.subscribe({
       next: (value) => {
         this.client = value
         this.socketSvc.onConnect(value.id)
           .then(() => {
             this.socketSub = this.socketSvc.socket.asObservable().subscribe({
-              next: value => this.newOrder(value)
+              next: value => this.socketPing(value)
             })
           })
       }
     })
+
     this.routeSub = this.ar.data.subscribe({
       next: (value: any) => {
         if (value.role === 'KITCHEN')
@@ -74,14 +78,21 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
     this.routeSub.unsubscribe()
   }
 
-  newOrder(ring: string) {
-    this.orders$ = this.clientSvc.getKitchenOrders()
-    if (ring === 'true') {
+  getOrders() {
+    this.clientSvc.getKitchenOrders()
+      .then(value => this.clientStore.setOrders(value))
+  }
+
+  socketPing(msg: string) {
+    if (msg === 'Order up!') {
       const audio = new Audio
       audio.src = '../../../assets/audio/ring.mp3'
       audio.play()
-      this.clientSvc.openSnackBar('Order up!')
     }
+
+    if (msg.length > 0)
+      this.clientSvc.openSnackBar(msg)
+    this.getOrders()
   }
 
   generateLink() {
@@ -98,11 +109,6 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
       else
         alert('Please enter a valid Table ID')
     }
-  }
-
-  filterOrders(orders: KitchenOrder[]) {
-    this.pending = orders.filter(value => value.status == 'PENDING')
-    return orders.filter(value => value.status != 'PENDING')
   }
 
   viewPendingOrders() {
@@ -156,8 +162,6 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
             .then(value => {
               if (value.refund != '0.00')
                 alert(`Refund of $${value.refund}`)
-              this.clientSvc.openSnackBar(`${item.name} has been changed to ${this.form.value.quantity}`)
-              // item.quantity = this.form.value.quantity
             })
             .catch(() => alert('Something went wrong'))
         }
@@ -177,16 +181,12 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
       .then(value => {
         if (value.refund !== '0.00')
           alert(`Refund of $${value.refund}`)
-        this.clientSvc.openSnackBar(`${item[0].name} has been removed`)
       })
       .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
   completeOrder(id: string) {
     this.clientSvc.completeOrder(id)
-      .then(() => {
-        this.clientSvc.openSnackBar(`OrderID: #${id.toUpperCase()} completed`)
-      })
       .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 

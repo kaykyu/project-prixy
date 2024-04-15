@@ -22,10 +22,12 @@ export class SuccessComponent implements OnInit {
     this.id = this.ar.snapshot.params['id']
     this.userSvc.getOrders(this.id)
       .then(value => {
-        this.details = value
-        localStorage.removeItem(value.id)
+        if (!!value) {
+          this.details = value
+          localStorage.removeItem(value.id)
+        }
       })
-      .catch(() => this.router.parseUrl('/error?error=order'))
+      .catch(() => this.router.navigateByUrl('/error?error=order'))
   }
 
   copied() {

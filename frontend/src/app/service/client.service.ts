@@ -1,7 +1,7 @@
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Client, KitchenOrder, LineItem, Login, Menu, OrderEdit, Stats } from '../models';
-import { Observable, firstValueFrom } from 'rxjs';
+import { firstValueFrom } from 'rxjs';
 import { MatSnackBar } from '@angular/material/snack-bar';
 
 @Injectable({
@@ -17,7 +17,7 @@ export class ClientService {
   }
 
   openSnackBar(message: string) {
-    this.snackBar.open(message, undefined, { duration: 1000 })
+    this.snackBar.open(message, undefined, { duration: 1500 })
   }
 
   confirmClient(change: Login): Promise<any> {
@@ -48,8 +48,8 @@ export class ClientService {
     return firstValueFrom(this.http.post('/api/auth/kitchen', {}, { headers: this.headers() }))
   }
 
-  getMenu(): Observable<Menu[]> {
-    return this.http.get<Menu[]>('/api/client/menu', { headers: this.headers() })
+  getMenu(): Promise<Menu[]> {
+    return firstValueFrom(this.http.get<Menu[]>('/api/client/menu', { headers: this.headers() }))
   }
 
   getMenuCategory(): Promise<string[]> {
@@ -72,8 +72,8 @@ export class ClientService {
     return firstValueFrom(this.http.delete<void>(`/api/client/menu/${id}`, { headers: this.headers() }))
   }
 
-  getKitchenOrders(): Observable<KitchenOrder[]> {
-    return this.http.get<KitchenOrder[]>('/api/client/kitchen', { headers: this.headers() })
+  getKitchenOrders(): Promise<KitchenOrder[]> {
+    return firstValueFrom(this.http.get<KitchenOrder[]>('/api/client/kitchen', { headers: this.headers() }))
   }
 
   completeItem(edit: OrderEdit): Promise<any> {

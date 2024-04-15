@@ -2,12 +2,16 @@
     <mat-card>
         <mat-card-content class="header">
             <div class="inner">
+                <button mat-raised-button color="primary" (click)="getOrders()"><mat-icon>refresh</mat-icon>Refresh orders</button>
+            </div>
+            <mat-divider [vertical]="true"></mat-divider>
+            <div class="inner">
                 <button mat-raised-button color="accent" (click)="generateLink()"><mat-icon>add_business</mat-icon>
                     Generate order link</button>
             </div>
             <mat-divider [vertical]="true"></mat-divider>
             <div class="inner">
-                <button mat-raised-button [matBadge]="pending.length" [matBadgeHidden]="pending.length == 0"
+                <button *ngIf="pending$ | async as pending" mat-raised-button [matBadge]="pending.length" [matBadgeHidden]="pending.length == 0"
                     matBadgeColor="accent" (click)="viewPendingOrders()"
                     [disabled]="pending.length == 0 || !isAdmin"><mat-icon>payments</mat-icon>
                     Pending payment</button>
@@ -21,7 +25,7 @@
 
 <div *ngIf="orders$ | async as orders; else loading">
     <div class="orders" *ngIf="orders.length > 0; else noOrders">
-        <div class="card-container" *ngFor="let o of filterOrders(orders)">
+        <div class="card-container" *ngFor="let o of orders">
             <mat-card class="orders">
                 <mat-card-header>
                     <mat-card-title>{{o.date | date: 'h:mm a, dd MMM yy': 'Asia/Singapore'}}</mat-card-title>
@@ -136,7 +140,7 @@
     <h2 mat-dialog-title>Orders pending payment</h2>
     <mat-dialog-content>
         <mat-action-list>
-            <button mat-list-item *ngFor="let o of pending" (click)="bill(o)" mat-dialog-close>OrderID: #{{o.id |
+            <button mat-list-item *ngFor="let o of pending$ | async" (click)="bill(o)" mat-dialog-close>OrderID: #{{o.id |
                 uppercase}}</button>
         </mat-action-list>
     </mat-dialog-content>

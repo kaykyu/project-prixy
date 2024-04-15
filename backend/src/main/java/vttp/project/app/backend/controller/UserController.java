@@ -76,6 +76,10 @@ public class UserController {
         JsonObject result = userSvc.getPostedOrders(id);
         if (result.isEmpty())
             return ResponseEntity.notFound().build();
+            
+        else if (result.containsKey("completed"))
+            return ResponseEntity.ok().build();
+
         return ResponseEntity.ok(result.toString());
     }
 }

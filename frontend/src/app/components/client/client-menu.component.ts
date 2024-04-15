@@ -4,6 +4,7 @@ import { Menu } from '../../models';
 import { ClientService } from '../../service/client.service';
 import { MatDialog } from '@angular/material/dialog';
 import { ClientMenuDetailsComponent } from './client-menu-details.component';
+import { ClientStoreService } from '../../service/client-store.service';
 
 @Component({
   selector: 'app-client-menu',
@@ -13,6 +14,7 @@ import { ClientMenuDetailsComponent } from './client-menu-details.component';
 export class ClientMenuComponent implements OnInit, OnDestroy {
 
   private clientSvc: ClientService = inject(ClientService)
+  private clientStore: ClientStoreService = inject(ClientStoreService)
   private dialog: MatDialog = inject(MatDialog)
 
   menu$!: Observable<Menu[]>
@@ -22,8 +24,8 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.clientSvc.getMenuCategory()
       .then(value => this.categories = value)
-
-    this.menu$ = this.clientSvc.getMenu()
+    this.getMenu()
+    this.menu$ = this.clientStore.getMenu
   }
 
   ngOnDestroy(): void {
@@ -31,12 +33,17 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
       this.dialog$.unsubscribe()
   }
 
+  getMenu() {
+    this.clientSvc.getMenu()
+      .then(value => this.clientStore.setMenu(value))    
+  }
+
   openAddDialog(item: Menu | void) {
     const dialogRef = this.dialog.open(ClientMenuDetailsComponent, { data: item });
     this.dialog$ = dialogRef.afterClosed().subscribe(
       result => {
         if (result) {
-          this.menu$ = this.clientSvc.getMenu()
+          this.getMenu()
           this.clientSvc.getMenuCategory()
             .then(value => this.categories = value)
         }
@@ -51,7 +58,7 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
     if (confirm(`Confirm removal of image for ${name}?`))
       this.clientSvc.deleteMenuImage(id)
         .then(() => {
-          this.menu$ = this.clientSvc.getMenu()
+          this.getMenu()
           this.clientSvc.getMenuCategory()
             .then(value => this.categories = value)
           this.clientSvc.openSnackBar(`${name} image successfully removed`)
@@ -62,7 +69,7 @@ export class ClientMenuComponent implements OnInit, OnDestroy {
     if (confirm(`Confirm deletion of ${name} from the menu?`))
       this.clientSvc.deleteMenu(id)
         .then(() => {
-          this.menu$ = this.clientSvc.getMenu()
+          this.getMenu()
           this.clientSvc.getMenuCategory()
             .then(value => this.categories = value)
           this.clientSvc.openSnackBar(`${name} successfully deleted`)

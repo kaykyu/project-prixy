@@ -37,7 +37,7 @@ export class ClientMainComponent implements OnInit {
 
   async clientInit() {
     return this.clientSvc.getClient()
-      .then(value => this.clientStore.setState({ client: value }))
+      .then(value => this.clientStore.setClient(value))
       .then(() => this.client$ = this.clientStore.getClient)
   }
 
@@ -49,7 +49,7 @@ export class ClientMainComponent implements OnInit {
     })
   }
 
-  pwMatch: ValidatorFn = (control: AbstractControl): ValidationErrors | null => {
+  pwMatch: ValidatorFn = (_control: AbstractControl): ValidationErrors | null => {
     const pw = this.pwForm?.controls['pw'].value
     const pw2 = this.pwForm?.controls['pw2'].value
     return pw === pw2 ? null : { notMatched: true }

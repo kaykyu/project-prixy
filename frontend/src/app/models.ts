@@ -21,6 +21,9 @@ export interface Client {
 
 export interface ClientSlice {
     client: Client
+    orders: KitchenOrder[],
+    pending: KitchenOrder[],
+    menu: Menu[]
 }
 
 export interface Tax {

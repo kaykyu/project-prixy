@@ -148,8 +148,10 @@ public class ClientService {
     }
 
     public Boolean postPayment(String token, String order) {
-        socket.clientOrderIn(getId(token), true);
-        return clientRepo.updateOrderStatus(order, OrderStatus.RECEIVED);
+        Boolean result = clientRepo.updateOrderStatus(order, OrderStatus.RECEIVED);
+        if (result)
+            socket.sendSocketMessage(getId(token), "Order up!");
+        return result;
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
@@ -159,7 +161,7 @@ public class ClientService {
                 && clientRepo.updateOrderProgress(edit.getProgress(), edit.getId())))
             throw new SqlOrdersException("Failed to update completed order item");
 
-        socket.clientOrderIn(getId(token), false);
+        socket.sendSocketMessage(getId(token), "");
     }
 
     public Double applyTax(String id, Double amount) {
@@ -200,7 +202,7 @@ public class ClientService {
         if (!(clientRepo.updateOrderItem(edit.getId(), edit.getItem(), edit.getQuantity()) && updateAmt))
             throw new SqlOrdersException("Failed to update edited order item");
 
-        socket.clientOrderIn(getId(token), false);
+        socket.sendSocketMessage(getId(token), "OrderID: #%s has been changed".formatted(edit.getId().toUpperCase()));
 
         DecimalFormat df = new DecimalFormat("0.00");
         return Json.createObjectBuilder().add("refund", df.format(refund)).build();
@@ -235,7 +237,7 @@ public class ClientService {
                     throw new SqlOrdersException("Failed to update removed order item");
         }
 
-        socket.clientOrderIn(getId(token), false);
+        socket.sendSocketMessage(getId(token), "OrderID: #%s has been changed".formatted(edit.getId().toUpperCase()));
 
         DecimalFormat df = new DecimalFormat("0.00");
         return Json.createObjectBuilder().add("refund", df.format(refund)).build();
@@ -258,7 +260,7 @@ public class ClientService {
             throw new SqlOrdersException("Failed to update completed order");
 
         statsRepo.saveCompletedOrder(order);
-        socket.clientOrderIn(order.getClientId(), false);
+        socket.sendSocketMessage(order.getClientId(), "OrderID: #%s has been completed".formatted(id.toUpperCase()));
         return true;
     }
 
@@ -282,7 +284,7 @@ public class ClientService {
         if (!(clientRepo.removeOrderItems(id) && clientRepo.removeOrder(id)))
             throw new SqlOrdersException("Failed to update removed order");
 
-        socket.clientOrderIn(getId(token), false);
+        socket.sendSocketMessage(getId(token), "OrderID: #%s has been removed".formatted(id.toUpperCase()));
 
         DecimalFormat df = new DecimalFormat("0.00");
         return Json.createObjectBuilder().add("refund", df.format(refund)).build();

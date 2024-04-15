@@ -24,6 +24,7 @@ import vttp.project.app.backend.model.OrderRequest;
 import vttp.project.app.backend.model.OrderStatus;
 import vttp.project.app.backend.model.Tax;
 import vttp.project.app.backend.repository.ClientRepository;
+import vttp.project.app.backend.repository.StatsRepository;
 import vttp.project.app.backend.repository.UserRepository;
 
 @Service
@@ -34,6 +35,9 @@ public class UserService {
 
     @Autowired
     private ClientRepository clientRepo;
+
+    @Autowired
+    private StatsRepository statsRepo;
 
     @Autowired
     private StripeService stripeSvc;
@@ -88,14 +92,13 @@ public class UserService {
         userRepo.saveLineItems(request.getId(), list);
         request.setAmount(LineItem.getTotal(list));
         try {
-            saveOrder(request, OrderStatus.PENDING);
+            saveOrder(request, OrderStatus.PENDING, "");
 
         } catch (SqlOrdersException e) {
             e.printStackTrace();
             return JsonObject.EMPTY_JSON_OBJECT;
         }
 
-        socket.clientOrderIn(request.getClient(), false);
         return Json.createObjectBuilder()
                 .add("url", "/success/%s".formatted(request.getId())).build();
     }
@@ -116,14 +119,14 @@ public class UserService {
         OrderRequest request = stripeSvc.handleEvent(stripeSvc.webhookAuth(payload, sig));
         if (request != null)
             try {
-                saveOrder(request, OrderStatus.RECEIVED);
+                saveOrder(request, OrderStatus.RECEIVED, "Order up!");
             } catch (Exception e) {
                 e.printStackTrace();
             }
     }
 
     @Transactional(rollbackFor = SqlOrdersException.class)
-    public void saveOrder(OrderRequest request, OrderStatus status) throws SqlOrdersException {
+    public void saveOrder(OrderRequest request, OrderStatus status, String message) throws SqlOrdersException {
 
         if (!userRepo.saveOrder(request, status))
             throw new SqlOrdersException("Failed to save into Orders");
@@ -131,7 +134,7 @@ public class UserService {
         if (!userRepo.saveOrderItems(request))
             throw new SqlOrdersException("Failed to save into OrderItems");
 
-        socket.clientOrderIn(request.getClient(), true);
+        socket.sendSocketMessage(request.getClient(), message);
     }
 
     public JsonObject sendReceipt(String id) {
@@ -150,9 +153,13 @@ public class UserService {
     public JsonObject getPostedOrders(String id) {
 
         OrderDetails order = userRepo.getOrderDetails(id);
-        if (order == null)
+
+        if (order == null) {
+            if (statsRepo.checkOrderCompleted(id))
+                return Json.createObjectBuilder().add("completed", true).build();
             return JsonObject.EMPTY_JSON_OBJECT;
-            
+        }
+        
         order.setOrders(userRepo.getOrderItems(id));
         return order.toJson();
     }

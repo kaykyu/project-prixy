@@ -1,5 +1,5 @@
 <div class="user">
-    <div *ngIf="details" class="center">
+    <div *ngIf="details else completed" class="center">
 
         <div>
             <div class="header">
@@ -67,3 +67,10 @@
         </div>
     </div>
 </div>
+
+<ng-template #completed>
+    <div class="center">
+        <h1>Your order has been completed.</h1>
+        <div class="footer">Powered by Prixy</div>
+    </div>
+</ng-template>
