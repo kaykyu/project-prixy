@@ -57,20 +57,7 @@ public class EmailService {
         Content content = new Content("text/html", receipt.getBody());
         Mail mail = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(sendgridKey);
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-        Response response = sg.api(request);
-
-        switch (response.getStatusCode()) {
-            case 202:
-                logger.info(">>> Receipt sent to %s".formatted(email));
-                break;
-            default:
-                throw new IOException("Error sending receipt email.");
-        }
+        sendEmail(mail);
     }
 
     public void sendPw(Client client, String pw, UserRole role) throws IOException {
@@ -82,20 +69,7 @@ public class EmailService {
         Content content = new Content("text/html", PW_EMAIL.formatted(role.toString(), pw));
         Mail mail = new Mail(from, subject, to, content);
 
-        SendGrid sg = new SendGrid(sendgridKey);
-        Request request = new Request();
-        request.setMethod(Method.POST);
-        request.setEndpoint("mail/send");
-        request.setBody(mail.build());
-        Response response = sg.api(request);
-
-        switch (response.getStatusCode()) {
-            case 202:
-                logger.info(">>> Verification email sent to %s".formatted(client.getEmail()));
-                break;
-            default:
-                throw new IOException("Error sending password email.");
-        }
+        sendEmail(mail);
     }
 
     public void sendResetPw(String email, String pw) throws IOException {
@@ -107,6 +81,11 @@ public class EmailService {
         Content content = new Content("text/html", RESET_PW.formatted(pw));
         Mail mail = new Mail(from, subject, to, content);
 
+        sendEmail(mail);
+    }
+
+    public void sendEmail(Mail mail) throws IOException {
+
         SendGrid sg = new SendGrid(sendgridKey);
         Request request = new Request();
         request.setMethod(Method.POST);
@@ -116,10 +95,10 @@ public class EmailService {
 
         switch (response.getStatusCode()) {
             case 202:
-                logger.info(">>> Reset email sent to %s".formatted(email));
+                logger.info(">>> %s email sent".formatted(mail.getSubject()));
                 break;
             default:
-                throw new IOException("Error sending password email.");
+                throw new IOException("Error %d: sending %s".formatted(response.getStatusCode(), mail.getSubject()));
         }
     }
 }
