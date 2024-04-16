@@ -1,7 +1,7 @@
-import { Component, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
+import { Component, OnDestroy, OnInit, TemplateRef, ViewChild, inject } from '@angular/core';
 import { ClientService } from '../../service/client.service';
 import { Client, Login } from '../../models';
-import { Observable } from 'rxjs';
+import { Observable, Subscription } from 'rxjs';
 import { ClientStoreService } from '../../service/client-store.service';
 import { AbstractControl, FormBuilder, FormGroup, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
 import { MatDialog } from '@angular/material/dialog';
@@ -11,7 +11,7 @@ import { MatDialog } from '@angular/material/dialog';
   templateUrl: './client-main.component.html',
   styleUrl: './client-main.component.css'
 })
-export class ClientMainComponent implements OnInit {
+export class ClientMainComponent implements OnInit, OnDestroy {
 
   private clientSvc: ClientService = inject(ClientService)
   private clientStore: ClientStoreService = inject(ClientStoreService)
@@ -26,6 +26,8 @@ export class ClientMainComponent implements OnInit {
   hide: boolean = true
   hide2: boolean = true
   hide3: boolean = true
+  roleSub: Subscription = new Subscription
+  isAdmin$!: Observable<boolean>
 
   ngOnInit(): void {
     this.clientInit()
@@ -33,6 +35,12 @@ export class ClientMainComponent implements OnInit {
         this.formInit()
         this.dialog.open(this.changePw, { data: value.email })
       })
+    
+    this.isAdmin$ = this.clientStore.isAdmin
+  }
+
+  ngOnDestroy(): void {
+    this.roleSub.unsubscribe()
   }
 
   async clientInit() {

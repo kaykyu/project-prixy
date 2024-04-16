@@ -27,13 +27,18 @@ export class ClientStoreService extends ComponentStore<ClientSlice> {
     (slice: ClientSlice) => slice.menu
   )
 
+  readonly isAdmin = this.select<boolean>(
+    (slice: ClientSlice) => slice.admin
+  )
+
   readonly setClient = this.updater<Client>(
     (slice: ClientSlice, client: Client) => {
       return {
         client: client,
         orders: slice.orders,
         pending: slice.pending,
-        menu: slice.menu
+        menu: slice.menu,
+        admin: slice.admin
       }
     }
   )
@@ -44,7 +49,8 @@ export class ClientStoreService extends ComponentStore<ClientSlice> {
         client: slice.client,
         orders: orders.filter(value => value.status != 'PENDING'),
         pending: orders.filter(value => value.status == 'PENDING'),
-        menu: slice.menu
+        menu: slice.menu,
+        admin: slice.admin
       }
     }
   )
@@ -55,7 +61,20 @@ export class ClientStoreService extends ComponentStore<ClientSlice> {
         client: slice.client,
         orders: slice.orders,
         pending: slice.pending,
-        menu: menu
+        menu: menu,
+        admin: slice.admin
+      }
+    }
+  )
+
+  readonly setIsAdmin = this.updater<boolean>(
+    (slice: ClientSlice, admin: boolean) => {
+      return {
+        client: slice.client,
+        orders: slice.orders,
+        pending: slice.pending,
+        menu: slice.menu,
+        admin: admin
       }
     }
   )
@@ -73,5 +92,6 @@ const INIT_SLICE = {
   },
   orders: [],
   pending: [],
-  menu: []
+  menu: [],
+  admin: true
 }

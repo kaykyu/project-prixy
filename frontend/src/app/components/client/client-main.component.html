@@ -5,7 +5,7 @@
         <span class="spacer"></span>
 
         <button mat-icon-button *ngFor="let link of links" [routerLink]="link.path" [routerLinkActive]="['is-active']"
-            [matTooltip]="link.tip"><mat-icon>{{link.label}}</mat-icon>
+            [matTooltip]="link.tip" [disabled]="link.path !== 'kitchen' && !(isAdmin$ | async)"><mat-icon>{{link.label}}</mat-icon>
         </button>
         <button mat-icon-button [routerLink]="['/']" (click)="logout()"
             matTooltip="Log out"><mat-icon>logout</mat-icon></button>

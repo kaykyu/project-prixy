@@ -60,6 +60,7 @@
                     <td><button mat-raised-button color="accent"
                             (click)="changePw('kitchen')"><mat-icon>password</mat-icon>Change
                             Kitchen password</button>
+                        <button mat-raised-button (click)="createKitchenAccount(false)">Forgot password</button>
                     </td>
                 </tr>
             </thead>
@@ -203,7 +204,7 @@
     <tr>
         <th>Kitchen Account</th>
         <td>Not created</td>
-        <td><button mat-raised-button (click)="createKitchenAccount()"><mat-icon>password</mat-icon>Create Kitchen
+        <td><button mat-raised-button (click)="createKitchenAccount(true)"><mat-icon>password</mat-icon>Create Kitchen
                 Account</button>
         </td>
     </tr>

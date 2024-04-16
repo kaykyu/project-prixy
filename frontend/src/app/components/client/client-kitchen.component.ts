@@ -63,8 +63,10 @@ export class ClientKitchenComponent implements OnInit, OnDestroy {
 
     this.routeSub = this.ar.data.subscribe({
       next: (value: any) => {
-        if (value.role === 'KITCHEN')
+        if (value.role === 'KITCHEN') {
           this.isAdmin = false
+          this.clientStore.setIsAdmin(false)
+        }
       }
     })
   }

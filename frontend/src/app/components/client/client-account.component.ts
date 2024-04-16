@@ -166,11 +166,13 @@ export class ClientAccountComponent implements OnInit, OnDestroy {
       .catch(err => alert(!!err.error ? err.error.error : 'Something went wrong'))
   }
 
-  createKitchenAccount() {
+  createKitchenAccount(first: boolean) {
     this.clientSvc.postKitchen()
       .then(value => {
         this.kitchen = value.username
-        alert('Kitchen account created, password has been sent to your email')
+        if (first)
+          alert('Kitchen account created, password has been sent to your email')
+        alert('New password for Kitchen account has been sent to your email')
       })
   }
 
